@@ -20,7 +20,7 @@ spec:
     - port: 5683
       targetPort: 5683
       protocol: TCP
-      name: CoIoT-peer
+      name: coiot-peer
     - port: 8086
       targetPort: 8086
       protocol: TCP
