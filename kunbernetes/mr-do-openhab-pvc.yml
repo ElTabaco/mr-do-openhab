@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: mr-do-openhab
+  name: mr-do-openhab-pvc-data
+spec:
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 4Gi
+  selector:
+    matchLabels:
+      usage: mr-do-openhab-pv-data

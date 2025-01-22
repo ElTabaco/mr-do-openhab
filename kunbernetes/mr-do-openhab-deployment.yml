@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: mr-do-openhab
+  name: mr-do-openhab
+  labels:
+    app: mr-do-openhab
+spec:
+  selector:
+    matchLabels:
+      app: mr-do-openhab
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mr-do-openhab
+    spec:
+#      nodeSelector:
+#        cputype: arm64
+      hostNetwork: true
+      containers:
+        - name: mqtt
+          image: eclipse-mosquitto:latest
+          ports:
+            - containerPort: 9001
+            - containerPort: 1883
+          env:
+            - name: TZ
+              value: Europe/Berlin
+          volumeMounts:
+            - name: openhab-data
+              mountPath: /mosquitto/data
+              subPath: mqtt/data
+            - name: openhab-data
+              mountPath: /mosquitto/config/mosquitto.conf
+              subPath: mqtt/config/mosquitto.conf
+
+        - name: openhab
+          image: openhab/openhab:latest-alpine
+          ports:
+            - containerPort: 8080
+            - containerPort: 8443
+            - containerPort: 5683
+            - containerPort: 8086
+            - containerPort: 9125
+            - containerPort: 9126
+          env:
+            - name: TZ
+              value: Europe/Berlin
+          volumeMounts:
+            - name: openhab-data
+              mountPath: /openhab/userdata
+              subPath: openhab/userdata
+            - name: openhab-data
+              mountPath: /openhab/conf
+              subPath: openhab/conf
+      volumes:
+        - name: openhab-data
+          persistentVolumeClaim:
+            claimName: mr-do-openhab-pvc-data
