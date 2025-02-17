@@ -15,8 +15,8 @@ spec:
       labels:
         app: mr-do-openhab
     spec:
-#      nodeSelector:
-#        cputype: arm64
+      nodeSelector:
+        cputype: arm64
       hostNetwork: true
       containers:
         - name: mqtt
