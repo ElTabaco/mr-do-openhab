@@ -14,5 +14,4 @@ kubectl describe services mr-do-openhab-service -n mr-do-openhab
 
 kubectl get all -n mr-do-openhab
 
-# sudo kubectl log <containername>
-# sudo kubectl label nodes mr-00 cputype=arm64
+# kubectl log <containername>
