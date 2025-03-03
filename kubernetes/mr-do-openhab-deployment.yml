@@ -17,7 +17,7 @@ spec:
     spec:
 #      nodeSelector:
 #        cputype: arm64
-      hostNetwork: true
+#      hostNetwork: true
       containers:
         - name: mqtt
           image: eclipse-mosquitto:latest
@@ -36,12 +36,12 @@ spec:
               subPath: mqtt/config/mosquitto.conf
 
         - name: openhab
-          image: openhab/openhab:4.3.1-alpine
+          image: openhab/openhab:4.3.3-alpine
           ports:
-            - containerPort: 8080
+#            - containerPort: 8080
             - containerPort: 8443
             - containerPort: 5683
-            - containerPort: 8086
+#            - containerPort: 8086
             - containerPort: 9125
             - containerPort: 9126
           env:
