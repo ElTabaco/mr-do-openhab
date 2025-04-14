@@ -41,9 +41,9 @@ spec:
             - containerPort: 8080
             - containerPort: 8443
             - containerPort: 5683
-#            - containerPort: 8086
             - containerPort: 5683
             - containerPort: 5684
+            - containerPort: 37993
           env:
             - name: TZ
               value: Europe/Berlin
