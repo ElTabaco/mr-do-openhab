@@ -38,12 +38,12 @@ spec:
         - name: openhab
           image: openhab/openhab:4.3.4-alpine
           ports:
-#            - containerPort: 8080
+            - containerPort: 8080
             - containerPort: 8443
             - containerPort: 5683
 #            - containerPort: 8086
-            - containerPort: 9125
-            - containerPort: 9126
+            - containerPort: 5683
+            - containerPort: 5684
           env:
             - name: TZ
               value: Europe/Berlin
