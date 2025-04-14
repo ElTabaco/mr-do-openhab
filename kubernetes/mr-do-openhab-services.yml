@@ -21,10 +21,6 @@ spec:
       targetPort: 5683
       protocol: UDP
       name: coiot-peer
-    - port: 5683
-      targetPort: 5683
-      protocol: TCP
-      name: coap-port
     - port: 5684
       targetPort: 5684
       protocol: TCP
