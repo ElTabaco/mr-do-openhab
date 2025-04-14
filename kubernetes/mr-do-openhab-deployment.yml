@@ -43,7 +43,7 @@ spec:
             - containerPort: 5683
             - containerPort: 5683
             - containerPort: 5684
-            - containerPort: 37993
+#            - containerPort: 37993
           env:
             - name: TZ
               value: Europe/Berlin
