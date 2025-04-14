@@ -21,17 +21,19 @@ spec:
       targetPort: 5683
       protocol: UDP
       name: coiot-peer
-#    - port: 8086
-#      targetPort: 8086
-#      protocol: TCP
-#      name: influxdb
-#    - port: 9125
-#      targetPort: 9125
-#      name: xml-rpc
-#    - port: 9126
-#      targetPort: 9126
-#      protocol: TCP
-#      name: bin-rpc
+    - port: 5683
+      targetPort: 5683
+      protocol: TCP
+      name: coap-port
+    - port: 5684
+      targetPort: 5684
+      protocol: TCP
+      name: coap-secure-port
+    - port: 37993
+      targetPort: 37993
+      protocol: UDP
+      name: discovery
+      # mqtt
     - port: 9001
       targetPort: 9001
       protocol: TCP
