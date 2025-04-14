@@ -36,7 +36,7 @@ spec:
               subPath: mqtt/config/mosquitto.conf
 
         - name: openhab
-          image: openhab/openhab:4.3.3-alpine
+          image: openhab/openhab:4.3.4-alpine
           ports:
 #            - containerPort: 8080
             - containerPort: 8443
