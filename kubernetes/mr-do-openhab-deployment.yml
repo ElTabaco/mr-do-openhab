@@ -36,7 +36,7 @@ spec:
               subPath: mqtt/config/mosquitto.conf
 
         - name: openhab
-          image: openhab/openhab:4.3.5-alpine
+          image: openhab/openhab:5.0.1-alpine
           ports:
             - containerPort: 8080
               protocol: TCP
@@ -50,6 +50,8 @@ spec:
           env:
             - name: TZ
               value: Europe/Berlin
+            - name: OPENHAB_CORE_NET_PRIMARYADDRESS
+              value: "0.0.0.0"
           volumeMounts:
             - name: openhab-data
               mountPath: /openhab/userdata
