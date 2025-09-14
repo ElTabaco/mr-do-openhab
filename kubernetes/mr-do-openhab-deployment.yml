@@ -19,24 +19,24 @@ spec:
 #        cputype: arm64
 #      hostNetwork: true
       containers:
-#        - name: mqtt
-#          image: eclipse-mosquitto:latest
-#          ports:
-#            - containerPort: 9001
-#            - containerPort: 1883
-#          env:
-#            - name: TZ
-#              value: Europe/Berlin
-#          volumeMounts:
-#            - name: openhab-data
-#              mountPath: /mosquitto/data
-#              subPath: mqtt/data
-#            - name: openhab-data
-#              mountPath: /mosquitto/config/mosquitto.conf
-#              subPath: mqtt/config/mosquitto.conf
+        - name: mqtt
+          image: eclipse-mosquitto:latest
+          ports:
+            - containerPort: 9001
+            - containerPort: 1883
+          env:
+            - name: TZ
+              value: Europe/Berlin
+          volumeMounts:
+            - name: openhab-data
+              mountPath: /mosquitto/data
+              subPath: mqtt/data
+            - name: openhab-data
+              mountPath: /mosquitto/config/mosquitto.conf
+              subPath: mqtt/config/mosquitto.conf
 
         - name: openhab
-          image: openhab/openhab:5.0.1-alpine
+          image: openhab/openhab:4.3.5-alpine
           ports:
             - containerPort: 8080
               protocol: TCP
