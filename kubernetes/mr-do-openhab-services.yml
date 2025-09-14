@@ -21,10 +21,10 @@ spec:
       targetPort: 5683
       protocol: UDP
       name: coiot-peer
-#    - port: 5684
-#      targetPort: 5684
-#      protocol: TCP
-#      name: coap-secure-port
+    - port: 5684
+      targetPort: 5684
+      protocol: TCP
+      name: coap-secure-port
 #    - port: 37993
 #      targetPort: 37993
 #      protocol: UDP
