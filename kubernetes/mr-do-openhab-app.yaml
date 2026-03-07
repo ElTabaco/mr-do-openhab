@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/ElTabaco/HelperFiles.git
     targetRevision: main
-    path: kubernetes/openhab
+    path: kubernetes
   destination:
     server: https://kubernetes.default.svc
     namespace: mr-do-openhab
