@@ -11,3 +11,4 @@ kubectl delete pod --all -n mr-do-openhab --grace-period=0 --force --wait=false 
 
 kubectl delete ns mr-do-openhab --ignore-not-found --wait=false || true
 kubectl patch namespace mr-do-openhab -p '{"spec":{"finalizers":[]}}' --type=merge || true
+kubectl delete pv mr-pv-data

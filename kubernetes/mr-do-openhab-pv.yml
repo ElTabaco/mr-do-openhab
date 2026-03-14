@@ -7,7 +7,7 @@ metadata:
 spec:
   capacity:
     storage: 16Gi
-  storageClassName: ""
+  storageClassName: mr-nfs
   persistentVolumeReclaimPolicy: Retain
   accessModes:
   - ReadWriteMany

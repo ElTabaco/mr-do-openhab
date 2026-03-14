@@ -3,8 +3,6 @@ kind: Service
 metadata:
   namespace: mr-do-openhab
   name: mr-do-openhab-service
-  annotations:
-    metallb.universe.tf/allow-shared-ip: "shared-ip-key"
 spec:
   selector:
     app: mr-do-openhab
