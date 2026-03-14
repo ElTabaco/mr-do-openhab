@@ -9,7 +9,7 @@ spec:
   selector:
     app: mr-do-openhab
   type: LoadBalancer
-  loadBalancerIP: 192.168.0.2
+  loadBalancerIP: 192.168.0.22
   ports:
     - port: 80
       targetPort: 8080
