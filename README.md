@@ -19,77 +19,19 @@ Beide nutzen jetzt **`mr-do-openhab` statt `mr-do-openhab-new`**.
 
 # 1️⃣ Bash Script
 
+```bash
+git fetch origin
+git reset --hard origin/main
+git clean -fd
+```
+
 Datei:
 
 ```bash
 create-openhab-argocd.sh
 ```
 
-```bash
-#!/bin/bash
 
-set -e
-
-APP="mr-do-openhab"
-NAMESPACE="mr-do-openhab"
-REPO="https://github.com/ElTabaco/mr-do-openhab.git"
-
-echo "Deleting old ArgoCD application (if exists)..."
-
-kubectl delete application $APP -n argocd --ignore-not-found
-
-echo "Removing stuck finalizers if necessary..."
-
-kubectl patch application $APP -n argocd --type=merge -p '{"metadata":{"finalizers":[]}}' || true
-
-echo "Deleting namespace (clean start)..."
-
-kubectl delete namespace $NAMESPACE --ignore-not-found
-
-echo "Waiting for namespace deletion..."
-
-while kubectl get namespace $NAMESPACE >/dev/null 2>&1; do
-  sleep 2
-done
-
-echo "Creating namespace..."
-
-kubectl create namespace $NAMESPACE
-
-echo "Creating ArgoCD Application..."
-
-cat <<EOF | kubectl apply -f -
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: $APP
-  namespace: argocd
-spec:
-  project: default
-
-  source:
-    repoURL: $REPO
-    targetRevision: main
-    path: .
-
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: $NAMESPACE
-
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-EOF
-
-echo ""
-echo "Application deployed."
-echo ""
-
-kubectl get applications -n argocd
-```
 
 Script ausführbar machen:
 
