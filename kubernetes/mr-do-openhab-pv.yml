@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: mr-do-openhab-pv-data
+  name: mr-pv-data
   labels:
-    usage: mr-do-openhab-pv-data
+    usage: mr-pv-data
 spec:
   capacity:
-    storage: 4Gi
-  storageClassName: oh-nfs
+    storage: 16Gi
+  storageClassName: mr-nfs
   persistentVolumeReclaimPolicy: Retain
   accessModes:
   - ReadWriteMany
