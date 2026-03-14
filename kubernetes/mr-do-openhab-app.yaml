@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/ElTabaco/HelperFiles.git
+    repoURL: https://github.com/ElTabaco/mr-do-openhab.git
     targetRevision: main
     path: kubernetes
   destination:

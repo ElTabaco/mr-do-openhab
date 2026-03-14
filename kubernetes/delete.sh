@@ -1,13 +1,13 @@
-kubectl delete -f mr-do-openhab-deployment.yml
-kubectl delete -f mr-do-openhab-services.yml
-kubectl delete -f mr-do-openhab-pvc.yml
-kubectl delete -f mr-do-openhab-pv.yml
+kubectl get applications -n argocd
+kubectl get applicationsets -n argocd
 
-kubectl delete all,deployment,sc,pv,pvc --all -n mr-do-openhab
-kubectl delete namespace mr-do-openhab
+kubectl patch application mr-do-openhab -n argocd --type=merge -p '{"operation": null}' || true
+kubectl patch application mr-do-openhab -n argocd --type=merge -p '{"metadata":{"finalizers":[]}}' || true
+kubectl delete application mr-do-openhab -n argocd --ignore-not-found
 
+kubectl delete all --all -n mr-do-openhab --wait=false || true
+kubectl delete pvc --all -n mr-do-openhab --wait=false || true
+kubectl delete pod --all -n mr-do-openhab --grace-period=0 --force --wait=false || true
 
-# argocd sync mr-do-openhab --prune -n argocd
-
-kubectl delete pod argocd-application-controller-0 -n argocd --grace-period=0 --force --wait=false
-kubectl rollout status statefulset/argocd-application-controller -n argocd --timeout=300s
+kubectl delete ns mr-do-openhab --ignore-not-found --wait=false || true
+kubectl patch namespace mr-do-openhab -p '{"spec":{"finalizers":[]}}' --type=merge || true
