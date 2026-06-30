@@ -162,9 +162,7 @@ kubectl get pvc -n mr-do-openhab
 
 ```
 kubectl annotate application mr-do-openhab -n argocd argocd.argoproj.io/refresh=hard --overwrite
-```
 
-```
 
 ---
 
