@@ -23,6 +23,10 @@ spec:
     spec:
       # nodeSelector:
       #   cputype: arm64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1883      # mosquitto user in image
+        fsGroup: 1883        # ensures PV files are group-writable
       containers:
         - name: mqtt
           image: eclipse-mosquitto:2.0.20
@@ -89,6 +93,10 @@ spec:
     spec:
       # nodeSelector:
       #   cputype: arm64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 9001      # openhab user in image
+        fsGroup: 9001        # ensures PV files are group-writable
       containers:
         - name: openhab
           image: openhab/openhab:4.3.5-alpine

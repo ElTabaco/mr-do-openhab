@@ -27,6 +27,8 @@ spec:
   selector:
     app: mr-do-openhab
   type: LoadBalancer
+  # Environment-specific: MetalLB IP for openHAB web UI
+  # Change this to match your MetalLB address pool / network
   loadBalancerIP: 192.168.0.22
   ports:
     - port: 80
