@@ -18,3 +18,15 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  ignoreDifferences:
+    # LoadBalancer assigns external IP/status at runtime — ArgoCD must not self-heal this
+    - group: ""
+      kind: Service
+      jsonPointers:
+        - /status
+        - /spec.clusterIP
+        - /spec.clusterIPs
+        - /spec.externalTrafficPolicy
+        - /spec.ipFamilyPolicy
+        - /spec.ipFamilies
+        - /spec.sessionsAffinity
