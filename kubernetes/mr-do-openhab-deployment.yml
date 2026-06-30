@@ -15,9 +15,6 @@ spec:
       labels:
         app: mr-do-openhab
     spec:
-#      nodeSelector:
-#        cputype: arm64
-#      hostNetwork: true
       containers:
         - name: mqtt
           image: eclipse-mosquitto:latest
@@ -46,19 +43,52 @@ spec:
               protocol: UDP
             - containerPort: 5684
               protocol: TCP
-#            - containerPort: 37993
           env:
             - name: TZ
               value: Europe/Berlin
-#            - name: OPENHAB_CORE_NET_PRIMARYADDRESS
-#              value: "0.0.0.0"
           volumeMounts:
+            # --- /openhab/conf/* : user configuration only ---
             - name: openhab-data
-              mountPath: /openhab/userdata
-              subPath: openhab/userdata
+              mountPath: /openhab/conf/items
+              subPath: openhab/conf/items
             - name: openhab-data
-              mountPath: /openhab/conf
-              subPath: openhab/conf
+              mountPath: /openhab/conf/things
+              subPath: openhab/conf/things
+            - name: openhab-data
+              mountPath: /openhab/conf/rules
+              subPath: openhab/conf/rules
+            - name: openhab-data
+              mountPath: /openhab/conf/scripts
+              subPath: openhab/conf/scripts
+            - name: openhab-data
+              mountPath: /openhab/conf/sitemaps
+              subPath: openhab/conf/sitemaps
+            - name: openhab-data
+              mountPath: /openhab/conf/services
+              subPath: openhab/conf/services
+            - name: openhab-data
+              mountPath: /openhab/conf/persistence
+              subPath: openhab/conf/persistence
+            - name: openhab-data
+              mountPath: /openhab/conf/transformations
+              subPath: openhab/conf/transformations
+            - name: openhab-data
+              mountPath: /openhab/conf/html
+              subPath: openhab/conf/html
+            - name: openhab-data
+              mountPath: /openhab/conf/icons/classic
+              subPath: openhab/conf/icons/classic
+            # --- /openhab/userdata/* : user state only ---
+            - name: openhab-data
+              mountPath: /openhab/userdata/jsondb
+              subPath: openhab/userdata/jsondb
+            - name: openhab-data
+              mountPath: /openhab/userdata/secrets
+              subPath: openhab/userdata/secrets
+            # --- /openhab/addons : manual add-ons ---
+            - name: openhab-data
+              mountPath: /openhab/addons
+              subPath: openhab/addons
       volumes:
         - name: openhab-data
           persistentVolumeClaim:
