@@ -1,3 +1,8 @@
+# ── Environment-specific ──
+# The NFS server (mr0.local) and path (/srv/nfs4/homes/mr/openhab) are
+# specific to this deployment. Update these values when deploying to a
+# different cluster or NFS server.
+#
 apiVersion: v1
 kind: PersistentVolume
 metadata:
