@@ -43,7 +43,8 @@ Only a **small subset** of these trees is actually user-owned configuration and 
 | `/openhab/conf/html/` | Static web resources | YES |
 | `/openhab/conf/icons/classic/` | Custom icons | YES |
 | `/openhab/userdata/jsondb/` | **Runtime config DB** (Items/Things/Links created via UI/MainUI) | YES |
-| `/openhab/userdata/secrets/` | Secrets storage | YES |
+| `/openhab/userdata/secrets/` | Instance UUID + secret (openHAB Cloud identification) | YES |
+| `/openhab/userdata/config/` | OSGi Config Admin (Cloud Connector settings, addon configs) | YES |
 | `/openhab/addons/` | Manually installed add-ons (keep - unknown if used) | YES |
 
 ### openHAB - do NOT persist (runtime / regenerable)
@@ -122,6 +123,8 @@ with these granular mounts:
   subPath: openhab/userdata/jsondb
 - mountPath: /openhab/userdata/secrets
   subPath: openhab/userdata/secrets
+- mountPath: /openhab/userdata/config
+  subPath: openhab/userdata/config
 # addons
 - mountPath: /openhab/addons
   subPath: openhab/addons

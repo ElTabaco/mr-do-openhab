@@ -82,9 +82,14 @@ spec:
             - name: openhab-data
               mountPath: /openhab/userdata/jsondb
               subPath: openhab/userdata/jsondb
+            # secrets: instance UUID + secret (openHAB Cloud identification)
             - name: openhab-data
               mountPath: /openhab/userdata/secrets
               subPath: openhab/userdata/secrets
+            # config: OSGi Config Admin (Cloud Connector settings, addon configs)
+            - name: openhab-data
+              mountPath: /openhab/userdata/config
+              subPath: openhab/userdata/config
             # --- /openhab/addons : manual add-ons ---
             - name: openhab-data
               mountPath: /openhab/addons
