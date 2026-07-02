@@ -57,11 +57,12 @@ kubectl annotate application mqtt -n argocd argocd.argoproj.io/refresh=hard --ov
 
 ## Persistent Storage
 
-| Resource | Detail |
-|----------|--------|
-| PV | `mr-do-openhab-pv-data` (4 GiB, NFS, Retain) |
-| NFS Server | `mr0.local:/srv/nfs4/homes/mr/openhab` |
-| PVC | `mr-do-openhab-pvc-data` (ReadWriteMany) |
+| App | PV | PVC | NFS Path | Size |
+|-----|----|----|----------|------|
+| openHAB | `mr-do-openhab-pv-data` | `mr-do-openhab-pvc-data` | `/srv/nfs4/homes/mr/openhab` | 4 GiB |
+| MQTT | `mqtt-pv-data` | `mqtt-pvc-data` | `/srv/nfs4/homes/mr/mqtt` | 1 GiB |
+
+Both PVs use NFS server `mr0.local`, `Retain` reclaim policy, `ReadWriteMany`.
 
 **Mount strategy:** Only user-specific config and state directories are persisted
 (granular subPath mounts). Runtime data (cache, tmp, logs) stays ephemeral.

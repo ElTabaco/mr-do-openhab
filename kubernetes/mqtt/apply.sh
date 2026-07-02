@@ -19,9 +19,9 @@ echo "=== MQTT Service ==="
 kubectl get svc mqtt -n mr-do-openhab || true
 
 echo ""
-echo "=== PVC (shared with openHAB) ==="
+echo "=== MQTT PVC ==="
 kubectl describe pvc mqtt-pvc-data -n mr-do-openhab || true
 
 echo ""
 echo "=== MQTT PV ==="
-kubectl describe pv mr-do-openhab-pv-data || true
+kubectl describe pv mqtt-pv-data || true
