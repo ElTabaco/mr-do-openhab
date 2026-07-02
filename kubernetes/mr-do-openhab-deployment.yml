@@ -20,6 +20,7 @@ spec:
     metadata:
       labels:
         app: mr-do-openhab-mqtt
+        stack: mr-do-openhab
     spec:
       # nodeSelector:
       #   cputype: arm64
@@ -90,6 +91,7 @@ spec:
     metadata:
       labels:
         app: mr-do-openhab
+        stack: mr-do-openhab
     spec:
       # nodeSelector:
       #   cputype: arm64
