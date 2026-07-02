@@ -94,14 +94,26 @@ spec:
               mountPath: /openhab/conf/persistence
               subPath: openhab/conf/persistence
             - name: openhab-data
-              mountPath: /openhab/conf/transformations
-              subPath: openhab/conf/transformations
+              mountPath: /openhab/conf/transform
+              subPath: openhab/conf/transform
             - name: openhab-data
               mountPath: /openhab/conf/html
               subPath: openhab/conf/html
             - name: openhab-data
               mountPath: /openhab/conf/icons/classic
               subPath: openhab/conf/icons/classic
+            # JSR223 automation scripts (user config)
+            - name: openhab-data
+              mountPath: /openhab/conf/automation/jsr223
+              subPath: openhab/conf/automation/jsr223
+            # Custom sound files (alarm, doorbell, etc)
+            - name: openhab-data
+              mountPath: /openhab/conf/sounds
+              subPath: openhab/conf/sounds
+            # exec.whitelist (which external commands can be called from rules)
+            - name: openhab-data
+              mountPath: /openhab/conf/misc
+              subPath: openhab/conf/misc
             # --- /openhab/userdata/* : user state only ---
             - name: openhab-data
               mountPath: /openhab/userdata/jsondb
@@ -114,6 +126,22 @@ spec:
             - name: openhab-data
               mountPath: /openhab/userdata/config
               subPath: openhab/userdata/config
+            # Karaf addons staging area (downloaded .kar files)
+            - name: openhab-data
+              mountPath: /openhab/userdata/kar
+              subPath: openhab/userdata/kar
+            # rrd4j persistence database (historical sensor data — 124+ .rrd files)
+            - name: openhab-data
+              mountPath: /openhab/userdata/persistence
+              subPath: openhab/userdata/persistence
+            # openHAB Cloud Connector state (secret file)
+            - name: openhab-data
+              mountPath: /openhab/userdata/openhabcloud
+              subPath: openhab/userdata/openhabcloud
+            # Instance UUID file (identifies this openHAB to myopenhab.org)
+            - name: openhab-data
+              mountPath: /openhab/userdata/uuid
+              subPath: openhab/userdata/uuid
             # --- /openhab/addons : manual add-ons ---
             - name: openhab-data
               mountPath: /openhab/addons

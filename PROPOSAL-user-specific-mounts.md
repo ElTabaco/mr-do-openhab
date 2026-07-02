@@ -112,12 +112,18 @@ with these granular mounts:
   subPath: openhab/conf/services
 - mountPath: /openhab/conf/persistence
   subPath: openhab/conf/persistence
-- mountPath: /openhab/conf/transformations
-  subPath: openhab/conf/transformations
+- mountPath: /openhab/conf/transform
+  subPath: openhab/conf/transform
 - mountPath: /openhab/conf/html
   subPath: openhab/conf/html
 - mountPath: /openhab/conf/icons/classic
   subPath: openhab/conf/icons/classic
+- mountPath: /openhab/conf/automation/jsr223
+  subPath: openhab/conf/automation/jsr223
+- mountPath: /openhab/conf/sounds
+  subPath: openhab/conf/sounds
+- mountPath: /openhab/conf/misc
+  subPath: openhab/conf/misc
 # userdata
 - mountPath: /openhab/userdata/jsondb
   subPath: openhab/userdata/jsondb
@@ -125,6 +131,14 @@ with these granular mounts:
   subPath: openhab/userdata/secrets
 - mountPath: /openhab/userdata/config
   subPath: openhab/userdata/config
+- mountPath: /openhab/userdata/kar
+  subPath: openhab/userdata/kar
+- mountPath: /openhab/userdata/persistence
+  subPath: openhab/userdata/persistence
+- mountPath: /openhab/userdata/openhabcloud
+  subPath: openhab/userdata/openhabcloud
+- mountPath: /openhab/userdata/uuid
+  subPath: openhab/userdata/uuid
 # addons
 - mountPath: /openhab/addons
   subPath: openhab/addons
