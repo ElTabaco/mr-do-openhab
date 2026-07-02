@@ -45,6 +45,8 @@ spec:
             # MQTT broker location (ClusterIP service, stable DNS name)
             - name: OPENHAB_MQTT__BROKER
               value: tcp://mqtt:1883
+            # Anonymous connection requires mosquitto.conf 'allow_anonymous true'
+            # (or set up a user/pass in services/mqtt.cfg + mosquitto password file)
           resources:
             requests:
               cpu: 500m

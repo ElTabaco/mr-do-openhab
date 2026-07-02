@@ -12,3 +12,11 @@ kubectl get pods -n mr-do-openhab -l app=mqtt -o wide || true
 echo ""
 echo "=== MQTT Service ==="
 kubectl get svc mqtt -n mr-do-openhab || true
+
+echo ""
+echo "=== PVC (shared with openHAB) ==="
+kubectl describe pvc mr-do-openhab-pvc-data -n mr-do-openhab || true
+
+echo ""
+echo "=== PV ==="
+kubectl describe pv mr-do-openhab-pv-data || true
