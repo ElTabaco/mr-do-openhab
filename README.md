@@ -19,12 +19,13 @@ ArgoCD
   │
   └── Application: mqtt  → kubernetes/mqtt/
         ├── Deployment (eclipse-mosquitto: 2.0.20)
-        └── Service (LoadBalancer, dynamic IP)
+        ├── Service (LoadBalancer, dynamic IP)
+        └── dedicated PV + PVC (1 GiB NFS, separate path)
 ```
 
-The two apps share the same NFS volume (PV/PVC lives under `openhab/` because
-openHAB owns the user-config files). MQTT uses `subPath: mqtt/data` and
-`subPath: mqtt/config/mosquitto.conf` from the same PV.
+Each app has its own PV and PVC. They live on the same NFS server but use
+different paths (`/srv/nfs4/homes/mr/openhab` and `/srv/nfs4/homes/mr/mqtt`)
+so deleting one app does NOT affect the other's data.
 
 ## Deployment
 
@@ -102,6 +103,8 @@ kubernetes/
     ├── app.yaml             # ArgoCD Application: mqtt
     ├── deployment.yml       # Mosquitto Deployment (standalone, no openhab deps)
     ├── service.yml          # MQTT Service (named mqtt)
+    ├── pv.yml               # PersistentVolume (NFS, dedicated)
+    ├── pvc.yml              # PersistentVolumeClaim
     ├── apply.sh             # Deploy + verify
     └── delete.sh            # Teardown (with confirmation)
 docker/

@@ -18,13 +18,3 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-  ignoreDifferences:
-    # Protect the shared PVC: if it sticks in Terminating due to MQTT still
-    # using it, ArgoCD would otherwise self-heal-and-prune. This tells
-    # ArgoCD to ignore status changes.
-    - group: ""
-      kind: PersistentVolumeClaim
-      name: mr-do-openhab-pvc-data
-      jsonPointers:
-        - /status
-        - /metadata.finalizers

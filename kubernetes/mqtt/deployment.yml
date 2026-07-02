@@ -56,18 +56,15 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 30
           volumeMounts:
-            - name: openhab-data
+            - name: mqtt-data
               mountPath: /mosquitto/data
               subPath: mqtt/data
-            - name: openhab-data
+            - name: mqtt-data
               mountPath: /mosquitto/config/mosquitto.conf
               subPath: mqtt/config/mosquitto.conf
       volumes:
-        # Shared PVC owned by openhab application. If openhab is deleted
-        # via ArgoCD, prune=true will delete this PVC and MQTT will lose data.
-        # To keep MQTT running standalone in the future: change claimName to
-        # a new PVC that you own, or set ArgoCD syncOptions:
-        #   - Prune=false
-        - name: openhab-data
+        # Dedicated PVC owned by this mqtt application. Fully decoupled
+        # from openhab. Deleting openhab will not affect mqtt data.
+        - name: mqtt-data
           persistentVolumeClaim:
-            claimName: mr-do-openhab-pvc-data
+            claimName: mqtt-pvc-data
