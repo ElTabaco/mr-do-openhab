@@ -17,7 +17,7 @@ ArgoCD
   │     ├── PV + PVC (4 GiB NFS)
   │     └── granular subPath mounts for user-specific config
   │
-  └── Application: mr-do-openhab-mqtt  → kubernetes/mqtt/
+  └── Application: mqtt  → kubernetes/mqtt/
         ├── Deployment (eclipse-mosquitto: 2.0.20)
         └── Service (LoadBalancer, dynamic IP)
 ```
@@ -51,7 +51,7 @@ openHAB owns the user-config files). MQTT uses `subPath: mqtt/data` and
 
 ```bash
 kubectl annotate application mr-do-openhab     -n argocd argocd.argoproj.io/refresh=hard --overwrite
-kubectl annotate application mr-do-openhab-mqtt -n argocd argocd.argoproj.io/refresh=hard --overwrite
+kubectl annotate application mqtt -n argocd argocd.argoproj.io/refresh=hard --overwrite
 ```
 
 ## Persistent Storage
@@ -99,9 +99,9 @@ kubernetes/
 │   ├── apply.sh             # Deploy + verify
 │   └── delete.sh            # Teardown (with confirmation)
 └── mqtt/
-    ├── app.yaml             # ArgoCD Application: mr-do-openhab-mqtt
+    ├── app.yaml             # ArgoCD Application: mqtt
     ├── deployment.yml       # Mosquitto Deployment (standalone, no openhab deps)
-    ├── service.yml          # MQTT Service (named mr-do-openhab-mqtt)
+    ├── service.yml          # MQTT Service (named mqtt)
     ├── apply.sh             # Deploy + verify
     └── delete.sh            # Teardown (with confirmation)
 docker/

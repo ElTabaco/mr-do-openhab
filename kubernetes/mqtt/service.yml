@@ -2,10 +2,10 @@ apiVersion: v1
 kind: Service
 metadata:
   namespace: mr-do-openhab
-  name: mr-do-openhab-mqtt
+  name: mqtt
 spec:
   selector:
-    app: mr-do-openhab-mqtt
+    app: mqtt
   type: LoadBalancer
   ports:
     - port: 1883

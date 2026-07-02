@@ -44,7 +44,7 @@ spec:
               value: Europe/Berlin
             # MQTT broker location (ClusterIP service, stable DNS name)
             - name: OPENHAB_MQTT__BROKER
-              value: tcp://mr-do-openhab-mqtt:1883
+              value: tcp://mqtt:1883
           resources:
             requests:
               cpu: 500m

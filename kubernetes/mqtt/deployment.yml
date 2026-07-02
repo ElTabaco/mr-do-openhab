@@ -2,9 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: mr-do-openhab
-  name: mr-do-openhab-mqtt
+  name: mqtt
   labels:
-    app: mr-do-openhab-mqtt
+    app: mqtt
 spec:
   replicas: 1
   revisionHistoryLimit: 10
@@ -15,11 +15,11 @@ spec:
       maxUnavailable: 0
   selector:
     matchLabels:
-      app: mr-do-openhab-mqtt
+      app: mqtt
   template:
     metadata:
       labels:
-        app: mr-do-openhab-mqtt
+        app: mqtt
     spec:
       # nodeSelector:
       #   cputype: arm64
