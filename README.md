@@ -2,50 +2,56 @@
 
 [openHAB](https://www.openhab.org/) home automation on Kubernetes, deployed via ArgoCD GitOps.
 
-Runs two services:
+Two **independent** applications, each with its own ArgoCD Application and Service:
+
 - **openHAB** — automation runtime (web UI, rules, things, items)
-- **Mosquitto** — MQTT broker
+- **Mosquitto** — MQTT broker (standalone, reusable for other apps)
 
 ## Architecture
 
 ```
-ArgoCD ── watches repo ──> kubernetes/*.yml
-                              │
-                ┌─────────────┴──────────────┐
-                │                            │
-         openHAB Deployment            MQTT Deployment
-         (web UI, rules)               (broker)
-                │                            │
-         openHAB Service              MQTT Service
-         (LB: 192.168.0.22)           (LB)
-                │                            │
-                └──────── shared PV ─────────┘
-                  (NFS 4GiB, mr0.local)
+ArgoCD
+  ├── Application: mr-do-openhab      → kubernetes/openhab/
+  │     ├── Deployment (openhab: 9001)
+  │     ├── Service (LoadBalancer 192.168.0.22)
+  │     ├── PV + PVC (4 GiB NFS)
+  │     └── granular subPath mounts for user-specific config
+  │
+  └── Application: mr-do-openhab-mqtt  → kubernetes/mqtt/
+        ├── Deployment (eclipse-mosquitto: 2.0.20)
+        └── Service (LoadBalancer, dynamic IP)
 ```
+
+The two apps share the same NFS volume (PV/PVC lives under `openhab/` because
+openHAB owns the user-config files). MQTT uses `subPath: mqtt/data` and
+`subPath: mqtt/config/mosquitto.conf` from the same PV.
 
 ## Deployment
 
-Everything is deployed via ArgoCD. The Application manifest lives in
-`kubernetes/mr-do-openhab-app.yaml`.
-
-### Deploy / Apply
+### Deploy openHAB
 
 ```bash
-./kubernetes/apply.sh
+./kubernetes/openhab/apply.sh
 ```
 
-### Delete / Teardown
+### Deploy MQTT (standalone)
 
 ```bash
-./kubernetes/delete.sh
-# Type 'yes' to confirm
+./kubernetes/mqtt/apply.sh
+```
+
+### Tear down
+
+```bash
+./kubernetes/openhab/delete.sh   # type 'yes' to confirm
+./kubernetes/mqtt/delete.sh       # type 'yes' to confirm
 ```
 
 ### Manual sync (force ArgoCD refresh)
 
 ```bash
-kubectl annotate application mr-do-openhab -n argocd \
-  argocd.argoproj.io/refresh=hard --overwrite
+kubectl annotate application mr-do-openhab     -n argocd argocd.argoproj.io/refresh=hard --overwrite
+kubectl annotate application mr-do-openhab-mqtt -n argocd argocd.argoproj.io/refresh=hard --overwrite
 ```
 
 ## Persistent Storage
@@ -80,21 +86,26 @@ cd docker
 docker compose up -d
 ```
 
-The compose file mirrors the same granular mount strategy as Kubernetes.
-
 ## Files
 
 ```
 kubernetes/
-├── mr-do-openhab-app.yaml          # ArgoCD Application (GitOps)
-├── mr-do-openhab-deployment.yml    # 2 Deployments: openhab + mqtt
-├── mr-do-openhab-services.yml      # 2 LoadBalancer Services
-├── mr-do-openhab-pv.yml            # PersistentVolume (NFS)
-├── mr-do-openhab-pvc.yml           # PersistentVolumeClaim
-├── apply.sh                        # Deploy + verify
-└── delete.sh                       # Teardown (with confirmation)
+├── openhab/
+│   ├── app.yaml             # ArgoCD Application: mr-do-openhab
+│   ├── deployment.yml       # openHAB Deployment (securityContext, probes, resources)
+│   ├── service.yml          # openHAB Service (LoadBalancer 192.168.0.22)
+│   ├── pv.yml               # PersistentVolume (NFS)
+│   ├── pvc.yml              # PersistentVolumeClaim
+│   ├── apply.sh             # Deploy + verify
+│   └── delete.sh            # Teardown (with confirmation)
+└── mqtt/
+    ├── app.yaml             # ArgoCD Application: mr-do-openhab-mqtt
+    ├── deployment.yml       # Mosquitto Deployment (standalone, no openhab deps)
+    ├── service.yml          # MQTT Service (named mr-do-openhab-mqtt)
+    ├── apply.sh             # Deploy + verify
+    └── delete.sh            # Teardown (with confirmation)
 docker/
-└── docker-compose.yaml             # Standalone Docker deployment
+└── docker-compose.yaml      # Standalone Docker deployment
 ```
 
 ## Credits

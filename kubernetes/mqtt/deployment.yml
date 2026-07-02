@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: mr-do-openhab
+  name: mr-do-openhab-mqtt
+  labels:
+    app: mr-do-openhab-mqtt
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: mr-do-openhab-mqtt
+  template:
+    metadata:
+      labels:
+        app: mr-do-openhab-mqtt
+    spec:
+      # nodeSelector:
+      #   cputype: arm64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1883      # mosquitto user in image
+        fsGroup: 1883        # ensures PV files are group-writable
+      containers:
+        - name: mqtt
+          image: eclipse-mosquitto:2.0.20
+          ports:
+            - containerPort: 1883
+              protocol: TCP
+            - containerPort: 9001
+              protocol: TCP
+          env:
+            - name: TZ
+              value: Europe/Berlin
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            tcpSocket:
+              port: 1883
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 1883
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          volumeMounts:
+            - name: openhab-data
+              mountPath: /mosquitto/data
+              subPath: mqtt/data
+            - name: openhab-data
+              mountPath: /mosquitto/config/mosquitto.conf
+              subPath: mqtt/config/mosquitto.conf
+      volumes:
+        - name: openhab-data
+          persistentVolumeClaim:
+            claimName: mr-do-openhab-pvc-data
