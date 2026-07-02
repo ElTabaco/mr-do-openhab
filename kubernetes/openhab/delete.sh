@@ -1,8 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "WARNING: This will DELETE all resources in namespace mr-do-openhab"
-echo "         including PV mr-do-openhab-pv-data (reclaim policy: Retain)"
+echo "WARNING: This will DELETE openHAB resources in namespace mr-do-openhab"
+echo "         (Deployment, Service, PV, PVC, ArgoCD Application)"
+echo ""
+echo "         NOTE: The MQTT app in the same namespace will NOT be affected."
+echo "         NOTE: PV reclaim policy is 'Retain' — your data on NFS is safe."
 echo ""
 read -r -p "Type 'yes' to confirm deletion: " CONFIRM
 
@@ -16,16 +19,15 @@ kubectl patch application mr-do-openhab -n argocd --type=merge -p '{"operation":
 kubectl patch application mr-do-openhab -n argocd --type=merge -p '{"metadata":{"finalizers":[]}}' || true
 kubectl delete application mr-do-openhab -n argocd --ignore-not-found || true
 
-echo "Deleting resources..."
-kubectl delete all --all -n mr-do-openhab --wait=false || true
-kubectl delete pvc --all -n mr-do-openhab --wait=false || true
-kubectl delete pod --all -n mr-do-openhab --grace-period=0 --force --wait=false || true
+echo "Deleting openHAB Deployment and Service..."
+kubectl delete deployment mr-do-openhab -n mr-do-openhab --ignore-not-found || true
+kubectl delete service mr-do-openhab-service -n mr-do-openhab --ignore-not-found || true
 
-echo "Deleting namespace..."
-kubectl delete ns mr-do-openhab --ignore-not-found --wait=false || true
-kubectl patch namespace mr-do-openhab -p '{"spec":{"finalizers":[]}}' --type=merge || true
+echo "Deleting PVC (PV has Retain policy, will survive)..."
+kubectl delete pvc mr-do-openhab-pvc-data -n mr-do-openhab --ignore-not-found || true
 
-echo "Deleting PV..."
-kubectl delete pv mr-do-openhab-pv-data --ignore-not-found || true
+echo ""
+echo "To delete the PV too, run manually:"
+echo "  kubectl delete pv mr-do-openhab-pv-data"
 
 echo "Done."

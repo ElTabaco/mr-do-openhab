@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Apply ArgoCD Application
-kubectl apply -f kubernetes/mr-do-openhab-app.yaml
+kubectl apply -f kubernetes/openhab/app.yaml
 
 # ── Verification (non-fatal) ──
 echo ""
