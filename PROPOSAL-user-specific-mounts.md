@@ -39,7 +39,7 @@ Only a **small subset** of these trees is actually user-owned configuration and 
 | `/openhab/conf/sitemaps/` | UI sitemaps | YES |
 | `/openhab/conf/services/` | `addons.cfg`, `runtime.cfg`, etc | YES |
 | `/openhab/conf/persistence/` | Persistence strategies | YES |
-| `/openhab/conf/transformations/` | Map/JS/XSLT transforms | YES |
+| `/openhab/conf/transformations/` | Map/JS/XSLT transforms (singular dir: 'transform') | YES |
 | `/openhab/conf/html/` | Static web resources | YES |
 | `/openhab/conf/icons/classic/` | Custom icons | YES |
 | `/openhab/userdata/jsondb/` | **Runtime config DB** (Items/Things/Links created via UI/MainUI) | YES |
@@ -53,7 +53,7 @@ Only a **small subset** of these trees is actually user-owned configuration and 
 |------|----------|
 | `/openhab/userdata/cache/` | Downloaded artifact cache - regenerated |
 | `/openhab/userdata/tmp/` | Temp files - regenerated |
-| `/openhab/userdata/log/` | Logs - removed from PV (decision: remove) |
+| `/openhab/userdata/logs/` | Logs - removed from PV (decision: remove) |
 | `/openhab/userdata/etc/` | Karaf/runtime config - regenerated from image (decision: not customized) |
 
 ### Mosquitto - keep on PV (already correct)
@@ -180,7 +180,7 @@ No change. Same PV (4 GiB, NFS), same PVC.
 
 | File | Change |
 |------|--------|
-| `kubernetes/mr-do-openhab-deployment.yml` | Coarse mounts replaced with 13 granular subPath mounts |
+| `kubernetes/mr-do-openhab-deployment.yml` | Coarse mounts replaced with 21 granular subPath mounts |
 | `PROPOSAL-user-specific-mounts.md` | This document (status APPROVED) |
 
 PV, PVC, Service, App manifests unchanged.

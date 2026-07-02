@@ -1,8 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
+# Self-locate: ensure we run from repo root regardless of cwd
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
 # Apply ArgoCD Application
-kubectl apply -f kubernetes/openhab/app.yaml
+kubectl apply -f "$REPO_ROOT/kubernetes/openhab/app.yaml"
+
 
 # ── Verification (non-fatal) ──
 echo ""

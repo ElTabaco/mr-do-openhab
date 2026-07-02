@@ -1,8 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
+# Self-locate: ensure we run from repo root regardless of cwd
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
 # Apply MQTT ArgoCD Application
-kubectl apply -f kubernetes/mqtt/app.yaml
+kubectl apply -f "$REPO_ROOT/kubernetes/mqtt/app.yaml"
+
 
 # ── Verification (non-fatal) ──
 echo ""

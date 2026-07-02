@@ -2,6 +2,15 @@
 
 Scanned: all files in repo. Findings prioritized BUG > SECURITY > RELIABILITY > MAINTAINABILITY > DRIFT.
 
+> **NOTE:** This audit was created BEFORE the `kubernetes/` restructure (commit `e21d4b5`).
+> File references have been updated to the new layout (`kubernetes/openhab/` and `kubernetes/mqtt/`).
+> All findings were addressed in subsequent commits — see git log for resolutions.
+
+---
+ Optimization and Improvement Opportunities
+
+Scanned: all files in repo. Findings prioritized BUG > SECURITY > RELIABILITY > MAINTAINABILITY > DRIFT.
+
 ---
 
 ## BUG (broken right now)
@@ -9,9 +18,9 @@ Scanned: all files in repo. Findings prioritized BUG > SECURITY > RELIABILITY > 
 | # | File | Issue | Fix |
 |---|------|-------|-----|
 | B1 | `docker/docker-compose.yaml:21` | **Double `:latest` in image tag**: `openhab/openhab:latest-alpine:latest` — invalid tag, Docker pull will fail | Change to `openhab/openhab:4.3.5-alpine` |
-| B2 | `kubernetes/delete.sh:14` | **Wrong PV name**: `kubectl delete pv mr-pv-data` — actual PV is named `mr-do-openhab-pv-data`. Command always fails silently | Fix to `mr-do-openhab-pv-data` |
-| B3 | `kubernetes/apply.sh:3` | **Wrong pod name**: `kubectl describe pod mr-do-openhab` — pod name is `mr-do-openhab-<replicaset-hash>`, not bare name | Use `kubectl describe pod -l app=mr-do-openhab -n mr-do-openhab` |
-| B4 | `kubernetes/apply.sh:5` | **Namespace flag on cluster-scoped resource**: `kubectl describe pv ... -n mr-do-openhab` — PVs are cluster-scoped, `-n` is ignored | Remove `-n` flag |
+| B2 | `kubernetes/openhab/delete.sh` | **Wrong PV name**: `kubectl delete pv mr-pv-data` — actual PV is named `mr-do-openhab-pv-data`. Command always fails silently | Fix to `mr-do-openhab-pv-data` |
+| B3 | `kubernetes/openhab/apply.sh` | **Wrong pod name**: `kubectl describe pod mr-do-openhab` — pod name is `mr-do-openhab-<replicaset-hash>`, not bare name | Use `kubectl describe pod -l app=mr-do-openhab -n mr-do-openhab` |
+| B4 | `kubernetes/openhab/apply.sh` | **Namespace flag on cluster-scoped resource**: `kubectl describe pv ... -n mr-do-openhab` — PVs are cluster-scoped, `-n` is ignored | Remove `-n` flag |
 | B5 | `README.md:167-169` | **Unclosed code block**: empty triple-backtick block leaves rendering broken | Remove or close properly |
 
 ---
@@ -66,14 +75,14 @@ Scanned: all files in repo. Findings prioritized BUG > SECURITY > RELIABILITY > 
 
 ## Summary
 
-| Severity | Count |
-|----------|-------|
-| BUG | 5 |
-| SECURITY | 3 |
-| RELIABILITY | 7 |
-| MAINTAINABILITY | 6 |
-| DRIFT | 4 |
-| **Total** | **25** |
+| Severity | Count | Resolved |
+|----------|-------|----------|
+| BUG | 5 | ✅ all (B1-B5) |
+| SECURITY | 3 | ✅ S1, S3 done · ❌ S2 (readOnlyRootFilesystem) skipped per user |
+| RELIABILITY | 7 | ✅ R1-R7 all done |
+| MAINTAINABILITY | 6 | ✅ M1-M6 all done |
+| DRIFT | 4 | ✅ D1-D4 all done |
+| **Total** | **25** | **24/25 (96%)** |
 
 ### Recommended fix order
 
