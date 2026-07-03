@@ -142,6 +142,10 @@ spec:
             - name: openhab-data
               mountPath: /openhab/userdata/uuid
               subPath: openhab/userdata/uuid
+            # Californium CoAP library config (auto-generated but may contain user tuning)
+            - name: openhab-data
+              mountPath: /openhab/userdata/Californium.properties
+              subPath: openhab/userdata/Californium.properties
             # --- /openhab/addons : manual add-ons ---
             - name: openhab-data
               mountPath: /openhab/addons
