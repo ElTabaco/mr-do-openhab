@@ -19,7 +19,7 @@ ArgoCD
   │
   └── Application: mqtt  → kubernetes/mqtt/
         ├── Deployment (eclipse-mosquitto: 2.0.20)
-        ├── Service (LoadBalancer, dynamic IP)
+        ├── Service (LoadBalancer 192.168.0.23)
         └── dedicated PV + PVC (1 GiB NFS, separate path)
 ```
 
@@ -70,14 +70,14 @@ See [PROPOSAL-user-specific-mounts.md](PROPOSAL-user-specific-mounts.md) for det
 
 ## Ports
 
-| Service | Port | Protocol | Purpose |
-|---------|------|----------|---------|
-| openHAB | 80 → 8080 | TCP | Web UI (HTTP) |
-| openHAB | 8443 | TCP | Web UI (HTTPS) |
-| openHAB | 5683 | UDP | CoIoT peer |
-| openHAB | 5684 | TCP | CoAP secure |
-| MQTT | 1883 | TCP | MQTT broker |
-| MQTT | 9001 | TCP | MQTT over WebSocket |
+| Service | IP | Port | Protocol | Purpose |
+|---------|----|------|----------|---------|
+| openHAB | 192.168.0.22 | 80 → 8080 | TCP | Web UI (HTTP) |
+| openHAB | 192.168.0.22 | 8443 | TCP | Web UI (HTTPS) |
+| openHAB | 192.168.0.22 | 5683 | UDP | CoIoT peer |
+| openHAB | 192.168.0.22 | 5684 | TCP | CoAP secure |
+| MQTT | 192.168.0.23 | 1883 | TCP | MQTT broker |
+| MQTT | 192.168.0.23 | 9001 | TCP | MQTT over WebSocket |
 
 ## Docker (standalone)
 
