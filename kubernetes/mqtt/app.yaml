@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mqtt
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ElTabaco/mr-do-openhab.git
+    targetRevision: main
+    path: kubernetes/mqtt
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mr-do-openhab
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  ignoreDifferences:
+    # MetalLB writes status.loadBalancer to Service objects at runtime.
+    # ArgoCD would otherwise see this as out-of-sync and self-heal in a loop.
+    - group: ""
+      kind: Service
+      jsonPointers:
+        - /status

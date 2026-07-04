@@ -1,187 +1,131 @@
 # mr-do-openhab
-openhab on kubernetes cluster
 
-## Mian credits
-* [openHAB](https://www.openhab.org/)
-* [openHAB docker](https://www.openhab.org/docs/installation/docker.html)
+[openHAB](https://www.openhab.org/) home automation on Kubernetes, deployed via ArgoCD GitOps.
 
+Two **independent** applications, each with its own ArgoCD Application and Service:
 
+- **openHAB** — automation runtime (web UI, rules, things, items)
+- **Mosquitto** — MQTT broker (standalone, reusable for other apps)
 
+## Architecture
 
-Ich habe dir **zwei Dateien vorbereitet**:
+```
+ArgoCD
+  ├── Application: mr-do-openhab      → kubernetes/openhab/
+  │     ├── Deployment (openhab: 9001)
+  │     ├── Service (LoadBalancer 192.168.0.22)
+  │     ├── PV + PVC (4 GiB NFS)
+  │     └── granular subPath mounts for user-specific config
+  │
+  └── Application: mqtt  → kubernetes/mqtt/
+        ├── Deployment (eclipse-mosquitto: 2.0.20)
+        ├── Service (LoadBalancer 192.168.0.23)
+        └── dedicated PV + PVC (1 GiB NFS, separate path)
+```
 
-* 📜 Bash-Script → erstellt / löscht sauber die ArgoCD Application
-* 📘 Markdown → Dokumentation der Schritte
+Each app has its own PV and PVC. They live on the same NFS server but use
+different paths (`/srv/nfs4/homes/mr/openhab` and `/srv/nfs4/homes/mr/mqtt`)
+so deleting one app does NOT affect the other's data.
 
-Beide nutzen jetzt **`mr-do-openhab` statt `mr-do-openhab-new`**.
+## Deployment
 
----
-
-# 1️⃣ Bash Script
+### Deploy openHAB
 
 ```bash
-git fetch origin
-git reset --hard origin/main
-git clean -fd
+./kubernetes/openhab/apply.sh
 ```
 
-Datei:
+### Deploy MQTT (standalone)
 
 ```bash
-create-openhab-argocd.sh
+./kubernetes/mqtt/apply.sh
 ```
 
-
-
-Script ausführbar machen:
+### Tear down
 
 ```bash
-chmod +x create-openhab-argocd.sh
+./kubernetes/openhab/delete.sh   # type 'yes' to confirm
+./kubernetes/mqtt/delete.sh       # type 'yes' to confirm
 ```
 
-Start:
+### Manual sync (force ArgoCD refresh)
 
 ```bash
-./create-openhab-argocd.sh
+kubectl annotate application mr-do-openhab     -n argocd argocd.argoproj.io/refresh=hard --overwrite
+kubectl annotate application mqtt -n argocd argocd.argoproj.io/refresh=hard --overwrite
 ```
 
----
+## Persistent Storage
 
-# 2️⃣ Markdown Dokumentation
+| App | PV | PVC | NFS Path | Size |
+|-----|----|----|----------|------|
+| openHAB | `mr-do-openhab-pv-data` | `mr-do-openhab-pvc-data` | `/srv/nfs4/homes/mr/openhab` | 4 GiB |
+| MQTT | `mqtt-pv-data` | `mqtt-pvc-data` | `/srv/nfs4/homes/mr/mqtt` | 1 GiB |
 
-Datei:
+Both PVs use NFS server `mr0.local`, `Retain` reclaim policy, `ReadWriteMany`.
 
-```text
-openhab-argocd.md
+**Mount strategy:** Only user-specific config and state directories are persisted
+(granular subPath mounts). Runtime data (cache, tmp, logs) stays ephemeral.
+See [PROPOSAL-user-specific-mounts.md](PROPOSAL-user-specific-mounts.md) for details.
+
+## Ports
+
+| Service | IP | Port | Protocol | Purpose |
+|---------|----|------|----------|---------|
+| openHAB | 192.168.0.22 | 80 → 8080 | TCP | Web UI (HTTP) |
+| openHAB | 192.168.0.22 | 8443 | TCP | Web UI (HTTPS) |
+| openHAB | 192.168.0.22 | 5683 | UDP | CoIoT peer |
+| openHAB | 192.168.0.22 | 5684 | TCP | CoAP secure |
+| MQTT | 192.168.0.23 | 1883 | TCP | MQTT broker |
+| MQTT | 192.168.0.23 | 9001 | TCP | MQTT over WebSocket |
+
+## Docker (standalone)
+
+For local/testing without Kubernetes, use `docker/docker-compose.yaml`:
+
+```bash
+cd docker
+docker compose up -d
 ```
 
-````markdown
-# OpenHAB ArgoCD Deployment
-
-Dieses Dokument beschreibt, wie die OpenHAB Installation im Kubernetes Cluster über ArgoCD deployt wird.
-
-Repository:
-
-https://github.com/ElTabaco/mr-do-openhab
-
-Namespace:
-
-mr-do-openhab
-
-Application Name:
-
-mr-do-openhab
-
----
-
-# Clean Deployment
-
-Application löschen
-
-kubectl delete application mr-do-openhab -n argocd
-
-Falls sie festhängt:
-
-kubectl patch application mr-do-openhab -n argocd --type=merge -p '{"metadata":{"finalizers":[]}}'
-
-Namespace löschen
-
-kubectl delete namespace mr-do-openhab
-
-Namespace neu erstellen
-
-kubectl create namespace mr-do-openhab
-
----
-
-# Application Deployment
-
-```yaml
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: mr-do-openhab
-  namespace: argocd
-spec:
-  project: default
-
-  source:
-    repoURL: https://github.com/ElTabaco/mr-do-openhab.git
-    targetRevision: main
-    path: .
-
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: mr-do-openhab
-
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-````
-
-Deploy:
+## Files
 
 ```
-kubectl apply -f openhab-argocd.yaml
+kubernetes/
+├── openhab/
+│   ├── app.yaml             # ArgoCD Application: mr-do-openhab
+│   ├── deployment.yml       # openHAB Deployment (securityContext, probes, resources)
+│   ├── service.yml          # openHAB Service (LoadBalancer 192.168.0.22)
+│   ├── pv.yml               # PersistentVolume (NFS)
+│   ├── pvc.yml              # PersistentVolumeClaim
+│   ├── apply.sh             # Deploy + verify
+│   └── delete.sh            # Teardown (with confirmation)
+└── mqtt/
+    ├── app.yaml             # ArgoCD Application: mqtt
+    ├── configmap.yaml       # mosquitto.conf ConfigMap
+    ├── deployment.yml       # Mosquitto Deployment (standalone, no openhab deps)
+    ├── service.yml          # MQTT Service (named mqtt)
+    ├── pv.yml               # PersistentVolume (NFS, dedicated)
+    ├── pvc.yml              # PersistentVolumeClaim
+    ├── apply.sh             # Deploy + verify
+    └── delete.sh            # Teardown (with confirmation)
+docker/
+└── docker-compose.yaml      # Standalone Docker deployment
 ```
 
----
+## Credits
 
-# Status prüfen
+- [openHAB](https://www.openhab.org/)
+- [openHAB Docker](https://www.openhab.org/docs/installation/docker.html)
 
-Applications:
+## Development
 
-```
-kubectl get applications -n argocd
-```
+Work on feature branches only. Never commit directly to `main`.
 
-Pods:
-
-```
-kubectl get pods -n mr-do-openhab
-```
-
-Services:
-
-```
-kubectl get svc -n mr-do-openhab
-```
-
-PVC:
-
-```
-kubectl get pvc -n mr-do-openhab
-```
-
----
-
-# Manual Sync
-
-```
-kubectl annotate application mr-do-openhab -n argocd argocd.argoproj.io/refresh=hard --overwrite
-```
-
-```
-
----
-
-# Ergebnis
-
-Du hast jetzt:
-
-```
-
-create-openhab-argocd.sh
-openhab-argocd.md
-
-```
-
-für dein **mr-do-openhab GitOps Deployment**.
-
----
-
-Wenn du möchtest, kann ich dir noch eine **perfekte GitOps Struktur für dein Repo bauen**, damit du später mehrere Apps sauber mit ArgoCD deployen kannst (OpenHAB, Player, Monitoring usw.).
+```bash
+git checkout -b feature/your-change
+# ... make changes ...
+git commit -m "feat: description"
+git push -u origin feature/your-change
+# Open PR to main
 ```

@@ -1,35 +1,55 @@
-version: '3'
-
 services:
-#mqtt
-    mosquitto:
-        container_name: mqtt
-        restart: always
-        image: eclipse-mosquitto:latest
-        ports:
-            - 1883:1883
-            - 9001:9001
-        volumes:
-            - ./mqtt/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
-            - ./mqtt/data:/mosquitto/data
-#            - ./mqtt/log:/mosquitto/log
-        networks:
-            - default
+  #mqtt
+  mosquitto:
+    container_name: mqtt
+    restart: always
+    image: eclipse-mosquitto:2.0.20
+    ports:
+      - 1883:1883
+      - 9001:9001
+    volumes:
+      - ./mqtt/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mqtt/data:/mosquitto/data
+    networks:
+      - default
 
-    openhab:
-        container_name: openhab
-        image: openhab/openhab:latest-alpine:latest
-        restart: always
-        volumes:
-#            - ./openhab/addons:/openhab/addons
-            - ./openhab/conf:/openhab/conf
-            - ./openhab/userdata:/openhab/userdata
-        environment:
-            OPENHAB_HTTP_PORT: "8081"
-            OPENHAB_HTTPS_PORT: "8444"
-            EXTRA_JAVA_OPTS: "-Duser.timezone=Europe/Berlin"
-        network_mode: host
+  openhab:
+    container_name: openhab
+    image: openhab/openhab:4.3.5-alpine
+    restart: always
+    volumes:
+      # --- /openhab/conf/* : user configuration only ---
+      - ./openhab/conf/items:/openhab/conf/items
+      - ./openhab/conf/things:/openhab/conf/things
+      - ./openhab/conf/rules:/openhab/conf/rules
+      - ./openhab/conf/scripts:/openhab/conf/scripts
+      - ./openhab/conf/sitemaps:/openhab/conf/sitemaps
+      - ./openhab/conf/services:/openhab/conf/services
+      - ./openhab/conf/persistence:/openhab/conf/persistence
+      - ./openhab/conf/transform:/openhab/conf/transform
+      - ./openhab/conf/html:/openhab/conf/html
+      - ./openhab/conf/icons/classic:/openhab/conf/icons/classic
+      - ./openhab/conf/automation:/openhab/conf/automation
+      - ./openhab/conf/sounds:/openhab/conf/sounds
+      - ./openhab/conf/misc:/openhab/conf/misc
+      # --- /openhab/userdata/* : user state only ---
+      - ./openhab/userdata/jsondb:/openhab/userdata/jsondb
+      - ./openhab/userdata/secrets:/openhab/userdata/secrets
+      - ./openhab/userdata/config:/openhab/userdata/config
+      - ./openhab/userdata/kar:/openhab/userdata/kar
+      - ./openhab/userdata/persistence:/openhab/userdata/persistence
+      - ./openhab/userdata/openhabcloud:/openhab/userdata/openhabcloud
+      - ./openhab/userdata/uuid:/openhab/userdata/uuid
+      - ./openhab/userdata/Californium.properties:/openhab/userdata/Californium.properties
+      # --- /openhab/addons : manual add-ons ---
+      - ./openhab/addons:/openhab/addons
+    environment:
+      OPENHAB_HTTP_PORT: "8080"
+      OPENHAB_HTTPS_PORT: "8443"
+      TZ: Europe/Berlin
+      EXTRA_JAVA_OPTS: "-Duser.timezone=Europe/Berlin"
+    networks:
+      - default
 
 networks:
-    default:
-
+  default:

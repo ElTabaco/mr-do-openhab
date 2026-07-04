@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/ElTabaco/mr-do-openhab.git
     targetRevision: main
-    path: kubernetes
+    path: kubernetes/openhab
   destination:
     server: https://kubernetes.default.svc
     namespace: mr-do-openhab
@@ -18,3 +18,10 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  ignoreDifferences:
+    # MetalLB writes status.loadBalancer to Service objects at runtime.
+    # ArgoCD would otherwise see this as out-of-sync and self-heal in a loop.
+    - group: ""
+      kind: Service
+      jsonPointers:
+        - /status

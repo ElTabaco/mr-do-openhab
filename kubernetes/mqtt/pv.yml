@@ -1,0 +1,23 @@
+# ── Environment-specific ──
+# NFS server (mr0.local) and path are deployment-specific.
+# Path /srv/nfs4/homes/mr/mqtt should be on the same NFS share as openhab
+# so both apps can share the underlying volume if desired.
+#
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mqtt-pv-data
+  labels:
+    usage: mqtt-pv-data
+spec:
+  capacity:
+    storage: 1Gi
+  storageClassName: ""
+  persistentVolumeReclaimPolicy: Retain
+  accessModes:
+  - ReadWriteMany
+  volumeMode: Filesystem
+  nfs:
+    server: mr0.local
+    path: "/srv/nfs4/homes/mr/mqtt"
+    readOnly: false

@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: mr-do-openhab
+  name: mqtt
+  labels:
+    app: mqtt
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mqtt
+  template:
+    metadata:
+      labels:
+        app: mqtt
+    spec:
+      # nodeSelector:
+      #   cputype: arm64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1883
+        fsGroup: 1883
+      containers:
+        - name: mqtt
+          image: eclipse-mosquitto:2.0.20
+          ports:
+            - containerPort: 1883
+              protocol: TCP
+            - containerPort: 9001
+              protocol: TCP
+          env:
+            - name: TZ
+              value: Europe/Berlin
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          readinessProbe:
+            tcpSocket:
+              port: 1883
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 1883
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          volumeMounts:
+            - name: mqtt-data
+              mountPath: /mosquitto/data
+              subPath: mqtt/data
+            - name: mqtt-config
+              mountPath: /mosquitto/config/mosquitto.conf
+              subPath: mosquitto.conf
+      volumes:
+        - name: mqtt-data
+          persistentVolumeClaim:
+            claimName: mqtt-pvc-data
+        - name: mqtt-config
+          configMap:
+            name: mqtt-config

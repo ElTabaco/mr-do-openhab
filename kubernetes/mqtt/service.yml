@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: mr-do-openhab
+  name: mqtt
+spec:
+  selector:
+    app: mqtt
+  # Environment-specific: MetalLB IP for MQTT broker
+  type: LoadBalancer
+  loadBalancerIP: 192.168.0.23
+  ports:
+    - port: 1883
+      targetPort: 1883
+      protocol: TCP
+      name: mqtt
+    - port: 9001
+      targetPort: 9001
+      protocol: TCP
+      name: mqtt-websockets

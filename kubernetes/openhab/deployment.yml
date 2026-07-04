@@ -1,0 +1,170 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: mr-do-openhab
+  name: mr-do-openhab
+  labels:
+    app: mr-do-openhab
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mr-do-openhab
+  template:
+    metadata:
+      labels:
+        app: mr-do-openhab
+    spec:
+      # nodeSelector:
+      #   cputype: arm64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 9001
+        fsGroup: 9001
+      initContainers:
+        # Ensure file mount targets exist as files (not dirs) on fresh NFS
+        - name: ensure-files
+          image: busybox:1.36
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+          command:
+            - sh
+            - -c
+            - |
+              touch /data/openhab/userdata/uuid
+              touch /data/openhab/userdata/Californium.properties
+          volumeMounts:
+            - name: openhab-data
+              mountPath: /data
+      containers:
+        - name: openhab
+          image: openhab/openhab:4.3.5-alpine
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+            - containerPort: 8443
+              protocol: TCP
+            - containerPort: 5683
+              protocol: UDP
+            - containerPort: 5684
+              protocol: TCP
+          env:
+            - name: TZ
+              value: Europe/Berlin
+            # JVM-level timezone (controls cron rules, timestamps)
+            - name: EXTRA_JAVA_OPTS
+              value: "-Duser.timezone=Europe/Berlin"
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          startupProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          volumeMounts:
+            # --- /openhab/conf/* : user configuration only ---
+            - name: openhab-data
+              mountPath: /openhab/conf/items
+              subPath: openhab/conf/items
+            - name: openhab-data
+              mountPath: /openhab/conf/things
+              subPath: openhab/conf/things
+            - name: openhab-data
+              mountPath: /openhab/conf/rules
+              subPath: openhab/conf/rules
+            - name: openhab-data
+              mountPath: /openhab/conf/scripts
+              subPath: openhab/conf/scripts
+            - name: openhab-data
+              mountPath: /openhab/conf/sitemaps
+              subPath: openhab/conf/sitemaps
+            - name: openhab-data
+              mountPath: /openhab/conf/services
+              subPath: openhab/conf/services
+            - name: openhab-data
+              mountPath: /openhab/conf/persistence
+              subPath: openhab/conf/persistence
+            - name: openhab-data
+              mountPath: /openhab/conf/transform
+              subPath: openhab/conf/transform
+            - name: openhab-data
+              mountPath: /openhab/conf/html
+              subPath: openhab/conf/html
+            - name: openhab-data
+              mountPath: /openhab/conf/icons/classic
+              subPath: openhab/conf/icons/classic
+            # JSR223 + Blockly + all automation scripts
+            - name: openhab-data
+              mountPath: /openhab/conf/automation
+              subPath: openhab/conf/automation
+            # Custom sound files (alarm, doorbell, etc)
+            - name: openhab-data
+              mountPath: /openhab/conf/sounds
+              subPath: openhab/conf/sounds
+            # exec.whitelist (which external commands can be called from rules)
+            - name: openhab-data
+              mountPath: /openhab/conf/misc
+              subPath: openhab/conf/misc
+            # --- /openhab/userdata/* : user state only ---
+            - name: openhab-data
+              mountPath: /openhab/userdata/jsondb
+              subPath: openhab/userdata/jsondb
+            - name: openhab-data
+              mountPath: /openhab/userdata/secrets
+              subPath: openhab/userdata/secrets
+            - name: openhab-data
+              mountPath: /openhab/userdata/config
+              subPath: openhab/userdata/config
+            - name: openhab-data
+              mountPath: /openhab/userdata/kar
+              subPath: openhab/userdata/kar
+            - name: openhab-data
+              mountPath: /openhab/userdata/persistence
+              subPath: openhab/userdata/persistence
+            - name: openhab-data
+              mountPath: /openhab/userdata/openhabcloud
+              subPath: openhab/userdata/openhabcloud
+            - name: openhab-data
+              mountPath: /openhab/userdata/uuid
+              subPath: openhab/userdata/uuid
+            - name: openhab-data
+              mountPath: /openhab/userdata/Californium.properties
+              subPath: openhab/userdata/Californium.properties
+            # --- /openhab/addons : manual add-ons ---
+            - name: openhab-data
+              mountPath: /openhab/addons
+              subPath: openhab/addons
+      volumes:
+        - name: openhab-data
+          persistentVolumeClaim:
+            claimName: mr-do-openhab-pvc-data
