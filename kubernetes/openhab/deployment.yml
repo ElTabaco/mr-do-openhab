@@ -21,9 +21,10 @@ spec:
       # nodeSelector:
       #   cputype: arm64
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 9001
         fsGroup: 9001
+        # openHAB entrypoint starts as root to set timezone and fix volume
+        # permissions, then drops to the openhab user (9001) via su-exec.
+        # runAsNonRoot would prevent this startup sequence.
       initContainers:
         # Ensure file mount targets exist as files (not dirs) on fresh NFS
         - name: ensure-files
@@ -65,11 +66,6 @@ spec:
             limits:
               cpu: "2"
               memory: 2Gi
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
           startupProbe:
             httpGet:
               path: /
