@@ -42,7 +42,7 @@ spec:
               mountPath: /data
       containers:
         - name: openhab
-          image: openhab/openhab:4.3.5-alpine
+          image: openhab/openhab:5.1.4-alpine
           ports:
             - containerPort: 8080
               protocol: TCP

@@ -15,7 +15,7 @@ services:
 
   openhab:
     container_name: openhab
-    image: openhab/openhab:4.3.5-alpine
+    image: openhab/openhab:5.1.4-alpine
     restart: always
     volumes:
       # --- /openhab/conf/* : user configuration only ---
