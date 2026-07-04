@@ -18,3 +18,10 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  ignoreDifferences:
+    # MetalLB writes status.loadBalancer to Service objects at runtime.
+    # ArgoCD would otherwise see this as out-of-sync and self-heal in a loop.
+    - group: ""
+      kind: Service
+      jsonPointers:
+        - /status

@@ -9,10 +9,7 @@ spec:
   replicas: 1
   revisionHistoryLimit: 10
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+    type: Recreate
   selector:
     matchLabels:
       app: mqtt
@@ -25,8 +22,8 @@ spec:
       #   cputype: arm64
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1883      # mosquitto user in image
-        fsGroup: 1883        # ensures PV files are group-writable
+        runAsUser: 1883
+        fsGroup: 1883
       containers:
         - name: mqtt
           image: eclipse-mosquitto:2.0.20
@@ -45,6 +42,11 @@ spec:
             limits:
               cpu: 200m
               memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           readinessProbe:
             tcpSocket:
               port: 1883
@@ -59,12 +61,13 @@ spec:
             - name: mqtt-data
               mountPath: /mosquitto/data
               subPath: mqtt/data
-            - name: mqtt-data
+            - name: mqtt-config
               mountPath: /mosquitto/config/mosquitto.conf
-              subPath: mqtt/config/mosquitto.conf
+              subPath: mosquitto.conf
       volumes:
-        # Dedicated PVC owned by this mqtt application. Fully decoupled
-        # from openhab. Deleting openhab will not affect mqtt data.
         - name: mqtt-data
           persistentVolumeClaim:
             claimName: mqtt-pvc-data
+        - name: mqtt-config
+          configMap:
+            name: mqtt-config

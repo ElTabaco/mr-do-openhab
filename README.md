@@ -102,6 +102,7 @@ kubernetes/
 │   └── delete.sh            # Teardown (with confirmation)
 └── mqtt/
     ├── app.yaml             # ArgoCD Application: mqtt
+    ├── configmap.yaml       # mosquitto.conf ConfigMap
     ├── deployment.yml       # Mosquitto Deployment (standalone, no openhab deps)
     ├── service.yml          # MQTT Service (named mqtt)
     ├── pv.yml               # PersistentVolume (NFS, dedicated)
