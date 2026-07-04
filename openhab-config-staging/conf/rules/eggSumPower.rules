@@ -1,0 +1,20 @@
+// eggSumPower.rules
+// Sums power across phases
+// TODO: Verify calculation matches your setup
+
+rule "Summe Leistung berechnen"
+when
+    Item Phase1_P changed or
+    Item Phase2_P changed or
+    Item Phase3_P changed
+then
+    if (!(Phase1_P.state instanceof Number) || !(Phase2_P.state instanceof Number) || !(Phase3_P.state instanceof Number)) {
+        return;
+    }
+    val Number p1 = (Phase1_P.state as Number)
+    val Number p2 = (Phase2_P.state as Number)
+    val Number p3 = (Phase3_P.state as Number)
+    val Number sum = p1 + p2 + p3
+    PhaseSum_P.postUpdate(sum)
+    logDebug("eggSumPower", "Summe Leistung: {} W", sum)
+end

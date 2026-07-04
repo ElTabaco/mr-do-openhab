@@ -1,0 +1,44 @@
+// Home sitemap
+sitemap home label="Hauptmenü" {
+    Frame label="Übersicht" {
+        Text item=PhaseSum_P
+        Text item=Waterlevel
+    }
+    Frame label="Kuhstall" {
+        Text item=guellePressure
+        Switch item=guellePumpe_Power
+        Text item=Viehhueter_Mode
+        Switch item=Viehhueter_Mode
+        Text item=ViehhueterSued_Mode
+        Switch item=ViehhueterSued_Mode
+        Text item=trocknungsanlage_Before_Temp
+        Text item=trocknungsanlage_Before_Humidity
+        Text item=trocknungsanlage_After_Temp
+        Text item=trocknungsanlage_After_Humidity
+    }
+    Frame label="Klima" {
+        Text item=mrLivingHT_Temperature
+        Text item=mrLivingHT_Humidity
+        Text item=mrChildHT_Temperature
+        Text item=mrChildHT_Humidity
+        Text item=mrShowerHT_Temperature
+        Text item=mrShowerHT_Humidity
+    }
+    Frame label="Rauchmelder" {
+        Text item=csSmokeBuero_Smoke_Alarm
+        Text item=csSmokeKueche_Smoke_Alarm
+        Text item=csSmokeOG_Smoke_Alarm
+        Text item=stoeckliSmoke_Smoke_Alarm
+        Text item=coseSmokeSpicher_Smoke_Alarm
+    }
+    Frame label="Wasser" {
+        Text item=Waterlevel
+        Text item=LiterWater
+    }
+    Frame label="Leistung" {
+        Text item=Phase1_P
+        Text item=Phase2_P
+        Text item=Phase3_P
+        Text item=PhaseSum_P
+    }
+}

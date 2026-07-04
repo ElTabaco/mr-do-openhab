@@ -1,0 +1,10 @@
+// English transformation map
+NULL=-
+ON=On
+OFF=Off
+OPEN=Open
+CLOSED=Closed
+UP=Up
+DOWN=Down
+0=Off
+1=On

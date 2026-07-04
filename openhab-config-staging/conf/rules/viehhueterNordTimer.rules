@@ -1,0 +1,29 @@
+// viehhueterNordTimer.rules
+// Controls northern cattle herder timer
+// TODO: Verify timing logic matches your setup
+
+var Timer viehhueterNordTimer = null
+
+rule "Viehhueter Nord Timer Start"
+when
+    Item Viehhueter_Mode changed to ON
+then
+    logInfo("viehhueterNord", "Viehhueter Nord gestartet")
+    if (viehhueterNordTimer === null) {
+        viehhueterNordTimer = createTimer(now.plusMinutes(30), [ |
+            Viehhueter_Mode.sendCommand(OFF)
+            logInfo("viehhueterNord", "Viehhueter Nord aus nach 30min")
+            viehhueterNordTimer = null
+        ])
+    }
+end
+
+rule "Viehhueter Nord Timer Stop"
+when
+    Item Viehhueter_Mode changed to OFF
+then
+    if (viehhueterNordTimer !== null) {
+        viehhueterNordTimer.cancel()
+        viehhueterNordTimer = null
+    }
+end

@@ -1,0 +1,10 @@
+// German transformation map
+NULL=-
+ON=An
+OFF=Aus
+OPEN=Offen
+CLOSED=Geschlossen
+UP=Auf
+DOWN=Ab
+0=Aus
+1=An

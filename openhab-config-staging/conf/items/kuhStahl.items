@@ -1,0 +1,141 @@
+// KuhStall (Cow Stall) Items
+// Reconstructed from rrd4j persistence file names
+// TODO: Verify item types and labels match your actual setup
+
+// Temperature & Humidity sensors
+Group gKuhStall "Kuhstall" <text>
+
+Number mrLivingHT_Temperature   "Wohnraum Temperatur [%.1f °C]"   <temperature> (gKuhStall) { channel="mqtt:topic:mrLivingHT:temp" }
+Number mrLivingHT_Humidity      "Wohnraum Luftfeuchte [%.0f %%]"  <humidity>    (gKuhStall) { channel="mqtt:topic:mrLivingHT:hum" }
+Number mrChildHT_Temperature    "Kindzimmer Temperatur [%.1f °C]" <temperature> (gKuhStall) { channel="mqtt:topic:mrChildHT:temp" }
+Number mrChildHT_Humidity       "Kindzimmer Luftfeuchte [%.0f %%]" <humidity>   (gKuhStall) { channel="mqtt:topic:mrChildHT:hum" }
+Number mrShowerHT_Temperature   "Bad Temperatur [%.1f °C]"        <temperature> (gKuhStall) { channel="mqtt:topic:mrShowerHT:temp" }
+Number mrShowerHT_Humidity      "Bad Luftfeuchte [%.0f %%]"       <humidity>    (gKuhStall) { channel="mqtt:topic:mrShowerHT:hum" }
+
+// Floor motion & light
+Switch mrFloormotion_Motion     "Bewegung Erdgeschoss"            <motion>      (gKuhStall)
+Number mrFloormotion_Temperature_1 "Erdgeschoss Temp 1 [%.1f °C]" <temperature> (gKuhStall)
+Number mrFloormotion_Humidity   "Erdgeschoss Feuchte [%.0f %%]"   <humidity>    (gKuhStall)
+Switch mrFloormotion_InputButton_1 "EG Taste 1"                   <switch>      (gKuhStall)
+Switch mrFloormotion_InputButton_2 "EG Taste 2"                   <switch>      (gKuhStall)
+Number mrFloorlight_Brightness_1 "Helligkeit 1 [%.0f lux]"        <light>       (gKuhStall)
+Number mrFloorlight_Brightness_2 "Helligkeit 2 [%.0f lux]"        <light>       (gKuhStall)
+Number mrFloorlight_Brightness_3 "Helligkeit 3 [%.0f lux]"        <light>       (gKuhStall)
+Number mrFloorlight_Brightness_4 "Helligkeit 4 [%.0f lux]"        <light>       (gKuhStall)
+Number mrFloorlight_Power_Consumption "EG Licht Verbrauch [%.0f W]" <energy>     (gKuhStall)
+Number mrFloorlight_Total_Energy_Consumption "EG Licht Gesamt [%.1f kWh]" <energy> (gKuhStall)
+
+// Shelly plugs
+Number MrShellyPlug_Power       "Shelly Plug Leistung [%.0f W]"   <energy>      (gKuhStall)
+
+// Power / Energy monitoring (3-phase)
+Number Phase1_A "Phase 1 Strom [%.1f A]"   <energy> (gKuhStall)
+Number Phase1_V "Phase 1 Spannung [%.0f V]" <energy> (gKuhStall)
+Number Phase1_P "Phase 1 Leistung [%.0f W]" <energy> (gKuhStall)
+Number Phase1_KWH "Phase 1 Verbrauch [%.1f kWh]" <energy> (gKuhStall)
+Number Phase2_A "Phase 2 Strom [%.1f A]"   <energy> (gKuhStall)
+Number Phase2_V "Phase 2 Spannung [%.0f V]" <energy> (gKuhStall)
+Number Phase2_P "Phase 2 Leistung [%.0f W]" <energy> (gKuhStall)
+Number Phase2_KWH "Phase 2 Verbrauch [%.1f kWh]" <energy> (gKuhStall)
+Number Phase3_A "Phase 3 Strom [%.1f A]"   <energy> (gKuhStall)
+Number Phase3_V "Phase 3 Spannung [%.0f V]" <energy> (gKuhStall)
+Number Phase3_P "Phase 3 Leistung [%.0f W]" <energy> (gKuhStall)
+Number Phase3_KWH "Phase 3 Verbrauch [%.1f kWh]" <energy> (gKuhStall)
+Number PhaseMeasure_V "Messung Spannung [%.0f V]" <energy> (gKuhStall)
+Number PhaseMeasure_P "Messung Leistung [%.0f W]" <energy> (gKuhStall)
+Number PhaseMeasure_KWH "Messung Verbrauch [%.1f kWh]" <energy> (gKuhStall)
+Number PhaseSum_P "Gesamtleistung [%.0f W]" <energy> (gKuhStall)
+
+// Smoke detectors
+Switch csSmokeBuero_Smoke_Alarm   "Rauchmelder Büro"               <fire>        (gKuhStall)
+Switch csSmokeBuero_Low_Battery   "Rauchmelder Büro Batterie schwach" <battery>   (gKuhStall)
+Number csSmokeBuero_Battery_Level "Rauchmelder Büro Batterie [%.0f %%]" <battery> (gKuhStall)
+Switch csSmokeKueche_Smoke_Alarm  "Rauchmelder Küche"              <fire>        (gKuhStall)
+Switch csSmokeKueche_Low_Battery  "Rauchmelder Küche Batterie schwach" <battery>  (gKuhStall)
+Number csSmokeKueche_Battery_Level "Rauchmelder Küche Batterie [%.0f %%]" <battery> (gKuhStall)
+Switch csSmokeOG_Smoke_Alarm      "Rauchmelder OG"                 <fire>        (gKuhStall)
+Switch csSmokeOG_Low_Battery      "Rauchmelder OG Batterie schwach" <battery>    (gKuhStall)
+Number csSmokeOG_Battery_Level    "Rauchmelder OG Batterie [%.0f %%]" <battery>  (gKuhStall)
+Switch csSmokeSchreinerei_Smoke_Alarm "Rauchmelder Schreinerei"   <fire>        (gKuhStall)
+Switch csSmokeSchreinerei_Low_Battery "Rauchmelder Schreinerei Batterie" <battery> (gKuhStall)
+Number csSmokeSchreinerei_Battery_Level "Rauchmelder Schreinerei Batterie [%.0f %%]" <battery> (gKuhStall)
+Switch mrSmockeStairs_Smoke_Alarm "Rauchmelder Treppe"            <fire>        (gKuhStall)
+Switch mrSmockeStairs_Low_Battery "Rauchmelder Treppe Batterie"   <battery>     (gKuhStall)
+Number mrSmockeStairs_Battery_Level "Rauchmelder Treppe Batterie [%.0f %%]" <battery> (gKuhStall)
+
+// Gülle / Manure system
+Number guellePressure              "Gülledruck [%.1f bar]"          <pressure>    (gKuhStall)
+Switch guellePumpe_Power           "Güllepumpe"                     <flow>        (gKuhStall)
+Number guellePumpe_Pressure        "Güllepumpe Druck [%.1f bar]"    <pressure>    (gKuhStall)
+Number guellePumpe_Power_1         "Güllepumpe Leistung 1 [%.0f W]" <energy>      (gKuhStall)
+Number guellePumpe_Power_2         "Güllepumpe Leistung 2 [%.0f W]" <energy>      (gKuhStall)
+Number guelleRuecklauf_Power       "Gülle Rücklauf [%.0f W]"        <energy>      (gKuhStall)
+Switch guelleDosierpumpe_Power     "Dosierpumpe"                    <flow>        (gKuhStall)
+Number guelleDosierpumpe_Power_Consumption "Dosierpumpe Verbrauch [%.0f W]" <energy> (gKuhStall)
+Number guelleDosierpumpe_Total_Energy_Consumption "Dosierpumpe Gesamt [%.1f kWh]" <energy> (gKuhStall)
+Switch guelleDosierpumpe_InputButton "Dosierpumpe Taste"           <switch>      (gKuhStall)
+Switch guelleDosierpumpe_Event_Trigger "Dosierpumpe Trigger"       <switch>      (gKuhStall)
+Switch guleAirControl_InputButton  "Abluft Steuerung Taste"         <switch>      (gKuhStall)
+
+// Viehhueter (Cattle herder / electric fence)
+Switch Viehhueter_Mode             "Viehhueter Modus"               <switch>      (gKuhStall)
+Number Viehhueter_Power            "Viehhueter Leistung [%.0f W]"   <energy>      (gKuhStall)
+Number Viehhueter_Countdown        "Viehhueter Countdown [%.0f]"    <timer>       (gKuhStall)
+Number Viehhueter_Countdown_Time   "Viehhueter Countdown Zeit [%.0f s]" <timer>  (gKuhStall)
+Switch ViehhueterSued_Mode         "Viehhueter Süd Modus"           <switch>      (gKuhStall)
+Number ViehhueterSued_Power        "Viehhueter Süd Leistung [%.0f W]" <energy>    (gKuhStall)
+Number ViehhueterSued_Countdown    "Viehhueter Süd Countdown [%.0f]" <timer>      (gKuhStall)
+Number ViehhueterSued_Countdown_Time "Viehhueter Süd Countdown Zeit [%.0f s]" <timer> (gKuhStall)
+Number ViehhueterSued2_Power       "Viehhueter Süd 2 Leistung [%.0f W]" <energy>  (gKuhStall)
+Number Viehsss_Power               "Viehhueter Leistung alt [%.0f W]" <energy>    (gKuhStall)
+
+// Stall equipment
+Switch Stall_Befeuchter_Power      "Stall Befeuchter"               <humidity>  (gKuhStall)
+Number stallMilchtank_Power        "Milchtank Leistung [%.0f W]"     <energy>      (gKuhStall)
+Number stallMilchtank_Aussentemperatur "Milchtank Aussentemp [%.1f °C]" <temperature> (gKuhStall)
+Number Ruhrwerk_Kuhe_Power         "Rührwerk Kühe [%.0f W]"         <energy>      (gKuhStall)
+Number Scheissepumpe_Power         "Mistpumpe [%.0f W]"             <energy>      (gKuhStall)
+Number Scheissepumpe_Signal_Strength "Mistpumpe Signal [%.0f]"      <network>      (gKuhStall)
+
+// BaumBarBier
+Number BaumBarBier_Power           "BaumBarBier [%.0f W]"           <energy>      (gKuhStall)
+
+// Red devices
+Switch redGarageDoor_Input         "Garagentor Eingang"             <switch>      (gKuhStall)
+Switch redGarageDoor_Input_Proxy   "Garagentor Proxy"               <switch>      (gKuhStall)
+Number redGarageDoor_Power         "Garagentor Leistung [%.0f W]"   <energy>      (gKuhStall)
+Switch redSpresso_Input            "RedSpresso Eingang"             <switch>      (gKuhStall)
+Number redSpresso_Power            "RedSpresso [%.0f W]"            <energy>      (gKuhStall)
+Number redSpresso_Watt             "RedSpresso Watt [%.0f W]"       <energy>      (gKuhStall)
+Number redSpresso_TotalEnergy      "RedSpresso Gesamt [%.1f kWh]"   <energy>      (gKuhStall)
+
+// Trocknungsanlage (Drying system)
+Number trocknungsanlage_Before_Temp     "Trocknung Vor Temp [%.1f °C]"    <temperature> (gKuhStall)
+Number trocknungsanlage_Before_Humidity "Trocknung Vor Feuchte [%.0f %%]" <humidity>    (gKuhStall)
+Number trocknungsanlage_After_Temp      "Trocknung Nach Temp [%.1f °C]"   <temperature> (gKuhStall)
+Number trocknungsanlage_After_Humidity  "Trocknung Nach Feuchte [%.0f %%]" <humidity>   (gKuhStall)
+Number trocknungsanlage_Outside_Temp    "Trocknung Aussen Temp [%.1f °C]" <temperature> (gKuhStall)
+Number trocknungsanlage_Outside_Humidity "Trocknung Aussen Feuchte [%.0f %%]" <humidity> (gKuhStall)
+Number trocknungsanlage_Roof_Temp       "Trocknung Dach Temp [%.1f °C]"   <temperature> (gKuhStall)
+
+// Stoeckli (cottage)
+Switch stoeckliSmoke_Smoke_Alarm  "Stöckli Rauchmelder"             <fire>        (gKuhStall)
+Switch stoeckliSmoke_Low_Battery  "Stöckli Batterie schwach"        <battery>     (gKuhStall)
+Switch stoeckliSmoke_Mute         "Stöckli Rauchmelder Stumm"       <switch>      (gKuhStall)
+Number stoeckliSmoke_Battery_Level "Stöckli Batterie [%.0f %%]"     <battery>     (gKuhStall)
+Number stoeckliSmoke_Signal_Strength "Stöckli Signal [%.0f]"        <network>      (gKuhStall)
+Switch coseSmokeSpicher_Smoke_Alarm "Spicher Rauchmelder"           <fire>        (gKuhStall)
+Switch coseSmokeSpicher_Low_Battery "Spicher Batterie schwach"      <battery>     (gKuhStall)
+Switch coseSmokeSpicher_Mute      "Spicher Rauchmelder Stumm"       <switch>      (gKuhStall)
+Number coseSmokeSpicher_Battery_Level "Spicher Batterie [%.0f %%]"  <battery>     (gKuhStall)
+
+// Water
+Number Waterlevel                  "Wasserstand [%.0f]"             <faucet>       (gKuhStall)
+Number WaterAlarmLevel             "Wasser Alarm Level [%.0f]"      <faucet>       (gKuhStall)
+Number LiterWater                 "Wasser Liter [%.0f L]"          <faucet>       (gKuhStall)
+Number lorasb001_DistanceWater     "Wasser Abstand [%.0f mm]"       <faucet>       (gKuhStall)
+
+// Shower (sourced from mrShowerHT Thing)
+
+// Cleaning
+Number cleaningStatus              "Reinigungsstatus"               <text>      (gKuhStall)

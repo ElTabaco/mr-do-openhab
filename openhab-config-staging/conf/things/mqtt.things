@@ -1,0 +1,30 @@
+// MQTT Things — Broker and sensor topics
+// Reconstructed from item channel references
+// TODO: Verify MQTT topic names match your actual sensor publishing
+
+Bridge mqtt:broker:mosquitto "MQTT Broker" @ "Kuhstall" [
+    host="mqtt",
+    port=1883,
+    clientId="openhab",
+    keepAlive=60,
+    reconnect=true
+] {
+    // Living room temp/humidity sensor
+    Thing topic mrLivingHT "Wohnraum Sensor" @ "Wohnraum" {
+        Channels:
+            Type number : temp "Temperatur" [ stateTopic="mrLivingHT/temperature", unit="°C" ]
+            Type number : hum  "Luftfeuchte" [ stateTopic="mrLivingHT/humidity", unit="%" ]
+    }
+    // Child room temp/humidity sensor
+    Thing topic mrChildHT "Kindzimmer Sensor" @ "Kindzimmer" {
+        Channels:
+            Type number : temp "Temperatur" [ stateTopic="mrChildHT/temperature", unit="°C" ]
+            Type number : hum  "Luftfeuchte" [ stateTopic="mrChildHT/humidity", unit="%" ]
+    }
+    // Shower room temp/humidity sensor
+    Thing topic mrShowerHT "Bad Sensor" @ "Bad" {
+        Channels:
+            Type number : temp "Temperatur" [ stateTopic="mrShowerHT/temperature", unit="°C" ]
+            Type number : hum  "Luftfeuchte" [ stateTopic="mrShowerHT/humidity", unit="%" ]
+    }
+}

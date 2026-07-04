@@ -1,0 +1,29 @@
+// viehhueterSuedTimer.rules
+// Controls southern cattle herder timer
+// TODO: Verify timing logic matches your setup
+
+var Timer viehhueterSuedTimer = null
+
+rule "Viehhueter Süd Timer Start"
+when
+    Item ViehhueterSued_Mode changed to ON
+then
+    logInfo("viehhueterSued", "Viehhueter Süd gestartet")
+    if (viehhueterSuedTimer === null) {
+        viehhueterSuedTimer = createTimer(now.plusMinutes(30), [ |
+            ViehhueterSued_Mode.sendCommand(OFF)
+            logInfo("viehhueterSued", "Viehhueter Süd aus nach 30min")
+            viehhueterSuedTimer = null
+        ])
+    }
+end
+
+rule "Viehhueter Süd Timer Stop"
+when
+    Item ViehhueterSued_Mode changed to OFF
+then
+    if (viehhueterSuedTimer !== null) {
+        viehhueterSuedTimer.cancel()
+        viehhueterSuedTimer = null
+    }
+end

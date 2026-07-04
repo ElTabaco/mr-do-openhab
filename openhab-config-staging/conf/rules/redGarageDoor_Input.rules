@@ -1,0 +1,11 @@
+// redGarageDoor_Input.rules
+// Handles garage door input events
+// TODO: Verify logic matches your setup
+
+rule "Garagentor Steuerung"
+when
+    Item redGarageDoor_Input received command
+then
+    logInfo("redGarageDoor", "Garagentor Befehl: {}", receivedCommand)
+    redGarageDoor_Input_Proxy.sendCommand(receivedCommand)
+end

@@ -1,0 +1,18 @@
+// stoeckliSmocke.rules
+// Monitors cottage smoke detector
+// TODO: Add notification logic (e.g. Telegram, email)
+
+rule "Stöckli Rauchmelder Alarm"
+when
+    Item stoeckliSmoke_Smoke_Alarm changed to ON
+then
+    logWarn("stoeckliSmocke", "STÖCKLI RAUCHALARM!")
+    // TODO: Add notification (pushover, telegram, etc.)
+end
+
+rule "Stöckli Batterie Warnung"
+when
+    Item stoeckliSmoke_Low_Battery changed to ON
+then
+    logWarn("stoeckliSmocke", "Stöckli Rauchmelder Batterie schwach!")
+end

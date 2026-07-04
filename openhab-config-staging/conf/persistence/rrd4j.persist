@@ -1,0 +1,14 @@
+// rrd4j persistence strategy
+// Persists all items every change and every minute
+
+Strategies {
+    everyMinute : "0 * * * * ?"
+    everyHour   : "0 0 * * * ?"
+    everyDay    : "0 0 0 * * ?"
+    default     = everyChange
+}
+
+Items {
+    // persist all items
+    * : strategy = everyChange, everyMinute, restoreOnStartup
+}

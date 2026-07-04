@@ -1,0 +1,17 @@
+// kuhStahlSensoren.rules
+// Monitors cow stall sensors (temperature, humidity)
+// TODO: Add actual logic for your sensors
+
+rule "Kuhstall Temperatur Überwachung"
+when
+    Item mrLivingHT_Temperature changed
+then
+    logInfo("kuhStahlSensoren", "Wohnraum Temp: {} °C", mrLivingHT_Temperature.state)
+end
+
+rule "Kindzimmer Temperatur Überwachung"
+when
+    Item mrChildHT_Temperature changed
+then
+    logInfo("kuhStahlSensoren", "Kindzimmer Temp: {} °C", mrChildHT_Temperature.state)
+end
