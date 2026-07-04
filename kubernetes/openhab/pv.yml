@@ -1,5 +1,5 @@
 # ── Environment-specific ──
-# The NFS server (mr0.local) and path (/srv/nfs4/homes/mr/openhab) are
+# The NFS server IP (192.168.0.200 = mr0) and path (/srv/nfs4/homes/mr/openhab) are
 # specific to this deployment. Update these values when deploying to a
 # different cluster or NFS server.
 #
@@ -18,6 +18,6 @@ spec:
   - ReadWriteMany
   volumeMode: Filesystem
   nfs:
-    server: mr0.local
+    server: 192.168.0.200
     path: "/srv/nfs4/homes/mr/openhab"
     readOnly: false
