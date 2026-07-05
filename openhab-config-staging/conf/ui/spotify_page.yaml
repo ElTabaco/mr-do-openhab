@@ -5,7 +5,7 @@
     "parameters": [],
     "parameterGroups": []
   },
-  "timestamp": "Jul 5, 2026, 11:05:48 PM",
+  "timestamp": "Jul 5, 2026, 11:29:32 PM",
   "component": "oh-layout-page",
   "config": {
     "label": "Spotify",
@@ -211,48 +211,32 @@
         "slots": {
           "default": [
             {
-              "component": "oh-grid-row",
+              "component": "oh-grid-cells",
               "config": {},
               "slots": {
                 "default": [
                   {
-                    "component": "oh-grid-col",
+                    "component": "oh-label-cell",
                     "config": {
-                      "width": "50%"
-                    },
-                    "slots": {
-                      "default": [
-                        {
-                          "component": "oh-label-card",
-                          "config": {
-                            "action": "options",
-                            "actionItem": "spotifyDevices",
-                            "icon": "speaker",
-                            "item": "spotifyDevices",
-                            "title": "Active Device"
-                          }
-                        }
-                      ]
+                      "item": "spotifyDevices",
+                      "title": "Device",
+                      "action": "options",
+                      "actionItem": "spotifyDevices",
+                      "icon": "speaker",
+                      "stateAsHeader": true,
+                      "expandable": false
                     }
                   },
                   {
-                    "component": "oh-grid-col",
+                    "component": "oh-label-cell",
                     "config": {
-                      "width": "50%"
-                    },
-                    "slots": {
-                      "default": [
-                        {
-                          "component": "oh-label-card",
-                          "config": {
-                            "action": "options",
-                            "actionItem": "spotifyPlaylists",
-                            "icon": "list",
-                            "item": "spotifyPlaylists",
-                            "title": "Playlists"
-                          }
-                        }
-                      ]
+                      "item": "spotifyPlaylists",
+                      "title": "Playlists",
+                      "action": "options",
+                      "actionItem": "spotifyPlaylists",
+                      "icon": "list",
+                      "stateAsHeader": true,
+                      "expandable": false
                     }
                   }
                 ]
