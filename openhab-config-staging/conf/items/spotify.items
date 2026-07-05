@@ -1,4 +1,4 @@
-// Spotify Items — Control, Info & Search Channels
+// Spotify Items — Control, Info & Search
 // Bridge: spotify:player:user1
 
 // === Playback Control ===
@@ -23,9 +23,25 @@ String   spotifyTrackDuration "Duration [%s]"           {channel="spotify:player
 String   spotifyPlaylists     "Playlists [%s]"          {channel="spotify:player:user1:playlists"}
 String   spotifyPlaylistName  "Playing Playlist [%s]"   {channel="spotify:player:user1:playlistName"}
 
-// === Search (no binding channel — driven by DSL rule + shell script) ===
+// === Search ===
 String   spotifySearchQuery   "Search Query"
-String   spotifySearchResults "Search Results"
+String   spotifySearchResults "Search Status"
+
+// === Search Results (populated by spotify_search.sh via REST API) ===
+String   spotifyResult1Track  "Result 1"     String spotifyResult1URI ""     String spotifyResult1Art ""
+String   spotifyResult2Track  "Result 2"     String spotifyResult2URI ""     String spotifyResult2Art ""
+String   spotifyResult3Track  "Result 3"     String spotifyResult3URI ""     String spotifyResult3Art ""
+String   spotifyResult4Track  "Result 4"     String spotifyResult4URI ""     String spotifyResult4Art ""
+String   spotifyResult5Track  "Result 5"     String spotifyResult5URI ""     String spotifyResult5Art ""
+String   spotifyResult6Track  "Result 6"     String spotifyResult6URI ""     String spotifyResult6Art ""
+
+// === Play triggers (tap to play search result) ===
+Switch   spotifyResult1Play   "Play 1"
+Switch   spotifyResult2Play   "Play 2"
+Switch   spotifyResult3Play   "Play 3"
+Switch   spotifyResult4Play   "Play 4"
+Switch   spotifyResult5Play   "Play 5"
+Switch   spotifyResult6Play   "Play 6"
 
 // === Advanced ===
 String   spotifyTrackPlay     "Play URI"                {channel="spotify:player:user1:trackPlay"}
