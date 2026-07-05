@@ -10,6 +10,7 @@ data:
     
     persistence true
     persistence_location /mosquitto/data/
+    autosave_interval 1800
     
     # MQTT listener (standard)
     listener 1883
@@ -18,3 +19,4 @@ data:
     # WebSocket listener (for browser-based clients)
     listener 9001
     protocol websockets
+    allow_anonymous true
