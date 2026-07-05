@@ -1,0 +1,29 @@
+// Spotify Items — Control & Info Channels
+// Bridge: spotify:player:user1
+
+// === Playback Control ===
+Player   spotifyPlayer        "Spotify Player"          {channel="spotify:player:user1:trackPlayer"}
+Dimmer   spotifyVolume        "Volume [%d %%]"          {channel="spotify:player:user1:deviceVolume"}
+Switch   spotifyShuffle       "Shuffle"                 {channel="spotify:player:user1:deviceShuffle"}
+String   spotifyRepeat        "Repeat [%s]"             {channel="spotify:player:user1:trackRepeat"}
+
+// === Device Selection ===
+String   spotifyDevices       "Active Device [%s]"      {channel="spotify:player:user1:devices"}
+String   spotifyDeviceName    "Device Name [%s]"        {channel="spotify:player:user1:deviceName"}
+
+// === Track Info ===
+String   spotifyTrackName     "Track [%s]"              {channel="spotify:player:user1:trackName"}
+String   spotifyArtistName    "Artist [%s]"             {channel="spotify:player:user1:artistName"}
+String   spotifyAlbumName     "Album [%s]"              {channel="spotify:player:user1:albumName"}
+String   spotifyAlbumArtUrl   "Album Art URL"           {channel="spotify:player:user1:albumImageUrl"}
+String   spotifyTrackProgress "Progress [%s]"           {channel="spotify:player:user1:trackProgress"}
+String   spotifyTrackDuration "Duration [%s]"           {channel="spotify:player:user1:trackDuration"}
+
+// === Playlists ===
+String   spotifyPlaylists     "Playlists [%s]"          {channel="spotify:player:user1:playlists"}
+String   spotifyPlaylistName  "Playing Playlist [%s]"   {channel="spotify:player:user1:playlistName"}
+
+// === Advanced (for rules/automation) ===
+String   spotifyTrackPlay     "Play URI"                {channel="spotify:player:user1:trackPlay"}
+String   spotifyTrackUri      "Track URI"               {channel="spotify:player:user1:trackUri"}
+String   spotifyDeviceId      "Device ID"               {channel="spotify:player:user1:deviceId"}

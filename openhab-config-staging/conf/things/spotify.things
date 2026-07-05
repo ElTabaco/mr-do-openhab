@@ -1,0 +1,15 @@
+// Spotify Binding — Player Bridge
+// Requires: Spotify Developer App (Client ID + Client Secret)
+// See: https://developer.spotify.com/dashboard
+//
+// INSTRUCTIONS:
+// 1. Replace YOUR_CLIENT_ID and YOUR_CLIENT_SECRET below with values from your Spotify Developer App
+// 2. Authorize at: http://localhost:8080/connectspotify (via SSH tunnel)
+//
+// Redirect URI in Spotify Developer App must be: http://localhost:8080/connectspotify
+
+Bridge spotify:player:user1 "Spotify Player" @ "Audio" [
+    clientId="YOUR_CLIENT_ID",
+    clientSecret="YOUR_CLIENT_SECRET",
+    refreshPeriod=10
+]
