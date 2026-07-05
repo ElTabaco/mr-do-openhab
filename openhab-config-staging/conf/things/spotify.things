@@ -4,9 +4,10 @@
 //
 // INSTRUCTIONS:
 // 1. Replace YOUR_CLIENT_ID and YOUR_CLIENT_SECRET below with values from your Spotify Developer App
-// 2. Authorize at: http://localhost:8080/connectspotify (via SSH tunnel)
+// 2. Authorize at: http://127.0.0.1:8080/connectspotify (via SSH tunnel)
 //
-// Redirect URI in Spotify Developer App must be: http://localhost:8080/connectspotify
+// Redirect URI in Spotify Developer App must be: http://127.0.0.1:8080/connectspotify
+// (Spotify rejects 'localhost' — must use explicit 127.0.0.1)
 
 Bridge spotify:player:user1 "Spotify Player" @ "Audio" [
     clientId="YOUR_CLIENT_ID",
