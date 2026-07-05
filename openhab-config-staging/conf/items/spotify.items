@@ -1,4 +1,4 @@
-// Spotify Items — Control & Info Channels
+// Spotify Items — Control, Info & Search Channels
 // Bridge: spotify:player:user1
 
 // === Playback Control ===
@@ -23,7 +23,12 @@ String   spotifyTrackDuration "Duration [%s]"           {channel="spotify:player
 String   spotifyPlaylists     "Playlists [%s]"          {channel="spotify:player:user1:playlists"}
 String   spotifyPlaylistName  "Playing Playlist [%s]"   {channel="spotify:player:user1:playlistName"}
 
-// === Advanced (for rules/automation) ===
+// === Search (no binding channel — driven by DSL rule + shell script) ===
+String   spotifySearchQuery   "Search Query"
+String   spotifySearchResults "Search Results"
+
+// === Advanced ===
 String   spotifyTrackPlay     "Play URI"                {channel="spotify:player:user1:trackPlay"}
 String   spotifyTrackUri      "Track URI"               {channel="spotify:player:user1:trackUri"}
 String   spotifyDeviceId      "Device ID"               {channel="spotify:player:user1:deviceId"}
+String   spotifyAccessToken   "Access Token"            {channel="spotify:player:user1:accessToken"}

@@ -1,0 +1,8 @@
+// MapDB persistence — restoreOnStartup for String items
+Strategies {
+    everyUpdate : "0 * * * * ?"
+}
+
+Items {
+    spotify* : strategy = everyUpdate, restoreOnStartup
+}

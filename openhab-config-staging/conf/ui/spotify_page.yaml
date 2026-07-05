@@ -1,0 +1,268 @@
+{
+  "uid": "spotify",
+  "tags": [],
+  "props": {
+    "parameters": [],
+    "parameterGroups": []
+  },
+  "timestamp": "Jul 5, 2026, 11:05:48 PM",
+  "component": "oh-layout-page",
+  "config": {
+    "label": "Spotify",
+    "sidebar": true
+  },
+  "slots": {
+    "canvas": [],
+    "default": [
+      {
+        "component": "oh-block",
+        "config": {
+          "title": "Search"
+        },
+        "slots": {
+          "default": [
+            {
+              "component": "oh-grid-row",
+              "config": {},
+              "slots": {
+                "default": [
+                  {
+                    "component": "oh-grid-col",
+                    "config": {
+                      "width": "100%"
+                    },
+                    "slots": {
+                      "default": [
+                        {
+                          "component": "oh-input-item",
+                          "config": {
+                            "item": "spotifySearchQuery",
+                            "title": "Search Spotify",
+                            "icon": "search",
+                            "sendCommand": true,
+                            "clearButton": true,
+                            "placeholder": "Artist, track, album..."
+                          }
+                        },
+                        {
+                          "component": "oh-label-card",
+                          "config": {
+                            "item": "spotifySearchResults",
+                            "title": "Results (send URI to play)",
+                            "icon": "list"
+                          }
+                        },
+                        {
+                          "component": "oh-input-item",
+                          "config": {
+                            "item": "spotifyTrackPlay",
+                            "title": "Play URI",
+                            "icon": "play",
+                            "sendCommand": true,
+                            "placeholder": "spotify:track:..."
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "component": "oh-block",
+        "config": {
+          "title": "Now Playing"
+        },
+        "slots": {
+          "default": [
+            {
+              "component": "oh-grid-row",
+              "config": {},
+              "slots": {
+                "default": [
+                  {
+                    "component": "oh-grid-col",
+                    "config": {
+                      "width": "30%"
+                    },
+                    "slots": {
+                      "default": [
+                        {
+                          "component": "oh-image-card",
+                          "config": {
+                            "item": "spotifyAlbumArtUrl",
+                            "title": "Album Art"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "component": "oh-grid-col",
+                    "config": {
+                      "width": "70%"
+                    },
+                    "slots": {
+                      "default": [
+                        {
+                          "component": "oh-label-card",
+                          "config": {
+                            "icon": "music_note",
+                            "item": "spotifyTrackName",
+                            "title": "Track"
+                          }
+                        },
+                        {
+                          "component": "oh-label-card",
+                          "config": {
+                            "icon": "person",
+                            "item": "spotifyArtistName",
+                            "title": "Artist"
+                          }
+                        },
+                        {
+                          "component": "oh-label-card",
+                          "config": {
+                            "icon": "album",
+                            "item": "spotifyAlbumName",
+                            "title": "Album"
+                          }
+                        },
+                        {
+                          "component": "oh-label-card",
+                          "config": {
+                            "footer": "of",
+                            "icon": "timer",
+                            "item": "spotifyTrackProgress",
+                            "title": "Progress"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "component": "oh-block",
+        "config": {
+          "title": "Controls"
+        },
+        "slots": {
+          "default": [
+            {
+              "component": "oh-grid-row",
+              "config": {},
+              "slots": {
+                "default": [
+                  {
+                    "component": "oh-grid-col",
+                    "config": {
+                      "width": "100%"
+                    },
+                    "slots": {
+                      "default": [
+                        {
+                          "component": "oh-player-item",
+                          "config": {
+                            "item": "spotifyPlayer",
+                            "title": "Playback"
+                          }
+                        },
+                        {
+                          "component": "oh-slider-item",
+                          "config": {
+                            "icon": "volume_high",
+                            "item": "spotifyVolume",
+                            "max": 100.0,
+                            "min": 0.0,
+                            "title": "Volume",
+                            "unit": "%"
+                          }
+                        },
+                        {
+                          "component": "oh-toggle-item",
+                          "config": {
+                            "icon": "shuffle",
+                            "item": "spotifyShuffle",
+                            "title": "Shuffle"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "component": "oh-block",
+        "config": {
+          "title": "Device & Playlists"
+        },
+        "slots": {
+          "default": [
+            {
+              "component": "oh-grid-row",
+              "config": {},
+              "slots": {
+                "default": [
+                  {
+                    "component": "oh-grid-col",
+                    "config": {
+                      "width": "50%"
+                    },
+                    "slots": {
+                      "default": [
+                        {
+                          "component": "oh-label-card",
+                          "config": {
+                            "action": "options",
+                            "actionItem": "spotifyDevices",
+                            "icon": "speaker",
+                            "item": "spotifyDevices",
+                            "title": "Active Device"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "component": "oh-grid-col",
+                    "config": {
+                      "width": "50%"
+                    },
+                    "slots": {
+                      "default": [
+                        {
+                          "component": "oh-label-card",
+                          "config": {
+                            "action": "options",
+                            "actionItem": "spotifyPlaylists",
+                            "icon": "list",
+                            "item": "spotifyPlaylists",
+                            "title": "Playlists"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "grid": [],
+    "masonry": []
+  }
+}

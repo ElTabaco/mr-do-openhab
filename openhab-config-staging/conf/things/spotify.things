@@ -12,5 +12,5 @@
 Bridge spotify:player:user1 "Spotify Player" @ "Audio" [
     clientId="YOUR_CLIENT_ID",
     clientSecret="YOUR_CLIENT_SECRET",
-    refreshPeriod=10
+    refreshPeriod=30
 ]
