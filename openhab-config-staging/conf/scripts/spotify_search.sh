@@ -1,7 +1,7 @@
 #!/bin/sh
 QUERY="$1"
 OH="http://localhost:8080/rest"
-AUTH="egg:egg12345"
+AUTH="${SPOTIFY_AUTH:-}"
 
 TOKEN=$(curl -sf -u "$AUTH" "$OH/items/spotifyAccessToken" 2>/dev/null | jq -r '.state // empty')
 
