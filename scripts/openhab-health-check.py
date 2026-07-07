@@ -6,11 +6,12 @@ try:
 except ImportError:
     sys.path.insert(0, "/workspace/local-llm-optimization/venv/lib/python3.13/site-packages")
     import paramiko
+import os
 import json
 
 K8S_MASTER = "192.168.0.200"
 SSH_USER = "mr"
-SSH_PASS = "egg12345"
+SSH_PASS = os.environ.get("MR_SSH_PASSWORD", "")
 NAMESPACE = "mr-do-openhab"
 
 client = paramiko.SSHClient()
