@@ -5,7 +5,7 @@
     "parameters": [],
     "parameterGroups": []
   },
-  "timestamp": "Jul 5, 2026, 11:41:30 PM",
+  "timestamp": "Jul 7, 2026, 9:27:15 AM",
   "component": "oh-layout-page",
   "config": {
     "label": "Spotify",
@@ -64,93 +64,57 @@
               "slots": {
                 "default": [
                   {
-                    "component": "oh-cell",
+                    "component": "widget:spotify_now_playing",
                     "config": {
-                      "on": "ON",
-                      "off": "OFF",
-                      "action": "command",
-                      "actionItem": "spotifyResult1Play",
-                      "actionCommand": "ON",
-                      "title": "=items.spotifyResult1Track.state",
-                      "stateAsHeader": true,
-                      "expandable": false,
-                      "backgroundImage": "=items.spotifyResult1Art.state",
-                      "style": "cover"
+                      "titleItem": "spotifyResult1Track",
+                      "artistItem": "spotifyResult1URI",
+                      "imageItem": "spotifyResult1Art",
+                      "actionItem": "spotifyResult1Play"
                     }
                   },
                   {
-                    "component": "oh-cell",
+                    "component": "widget:spotify_now_playing",
                     "config": {
-                      "on": "ON",
-                      "off": "OFF",
-                      "action": "command",
-                      "actionItem": "spotifyResult2Play",
-                      "actionCommand": "ON",
-                      "title": "=items.spotifyResult2Track.state",
-                      "stateAsHeader": true,
-                      "expandable": false,
-                      "backgroundImage": "=items.spotifyResult2Art.state",
-                      "style": "cover"
+                      "titleItem": "spotifyResult2Track",
+                      "artistItem": "spotifyResult2URI",
+                      "imageItem": "spotifyResult2Art",
+                      "actionItem": "spotifyResult2Play"
                     }
                   },
                   {
-                    "component": "oh-cell",
+                    "component": "widget:spotify_now_playing",
                     "config": {
-                      "on": "ON",
-                      "off": "OFF",
-                      "action": "command",
-                      "actionItem": "spotifyResult3Play",
-                      "actionCommand": "ON",
-                      "title": "=items.spotifyResult3Track.state",
-                      "stateAsHeader": true,
-                      "expandable": false,
-                      "backgroundImage": "=items.spotifyResult3Art.state",
-                      "style": "cover"
+                      "titleItem": "spotifyResult3Track",
+                      "artistItem": "spotifyResult3URI",
+                      "imageItem": "spotifyResult3Art",
+                      "actionItem": "spotifyResult3Play"
                     }
                   },
                   {
-                    "component": "oh-cell",
+                    "component": "widget:spotify_now_playing",
                     "config": {
-                      "on": "ON",
-                      "off": "OFF",
-                      "action": "command",
-                      "actionItem": "spotifyResult4Play",
-                      "actionCommand": "ON",
-                      "title": "=items.spotifyResult4Track.state",
-                      "stateAsHeader": true,
-                      "expandable": false,
-                      "backgroundImage": "=items.spotifyResult4Art.state",
-                      "style": "cover"
+                      "titleItem": "spotifyResult4Track",
+                      "artistItem": "spotifyResult4URI",
+                      "imageItem": "spotifyResult4Art",
+                      "actionItem": "spotifyResult4Play"
                     }
                   },
                   {
-                    "component": "oh-cell",
+                    "component": "widget:spotify_now_playing",
                     "config": {
-                      "on": "ON",
-                      "off": "OFF",
-                      "action": "command",
-                      "actionItem": "spotifyResult5Play",
-                      "actionCommand": "ON",
-                      "title": "=items.spotifyResult5Track.state",
-                      "stateAsHeader": true,
-                      "expandable": false,
-                      "backgroundImage": "=items.spotifyResult5Art.state",
-                      "style": "cover"
+                      "titleItem": "spotifyResult5Track",
+                      "artistItem": "spotifyResult5URI",
+                      "imageItem": "spotifyResult5Art",
+                      "actionItem": "spotifyResult5Play"
                     }
                   },
                   {
-                    "component": "oh-cell",
+                    "component": "widget:spotify_now_playing",
                     "config": {
-                      "on": "ON",
-                      "off": "OFF",
-                      "action": "command",
-                      "actionItem": "spotifyResult6Play",
-                      "actionCommand": "ON",
-                      "title": "=items.spotifyResult6Track.state",
-                      "stateAsHeader": true,
-                      "expandable": false,
-                      "backgroundImage": "=items.spotifyResult6Art.state",
-                      "style": "cover"
+                      "titleItem": "spotifyResult6Track",
+                      "artistItem": "spotifyResult6URI",
+                      "imageItem": "spotifyResult6Art",
+                      "actionItem": "spotifyResult6Play"
                     }
                   }
                 ]
@@ -160,81 +124,11 @@
         }
       },
       {
-        "component": "oh-block",
+        "component": "widget:spotify_now_playing",
         "config": {
-          "title": "Now Playing"
-        },
-        "slots": {
-          "default": [
-            {
-              "component": "oh-grid-row",
-              "config": {},
-              "slots": {
-                "default": [
-                  {
-                    "component": "oh-grid-col",
-                    "config": {
-                      "width": "30%"
-                    },
-                    "slots": {
-                      "default": [
-                        {
-                          "component": "oh-image-card",
-                          "config": {
-                            "item": "spotifyAlbumArtUrl",
-                            "title": "Album Art"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "component": "oh-grid-col",
-                    "config": {
-                      "width": "70%"
-                    },
-                    "slots": {
-                      "default": [
-                        {
-                          "component": "oh-label-card",
-                          "config": {
-                            "icon": "music_note",
-                            "item": "spotifyTrackName",
-                            "title": "Track"
-                          }
-                        },
-                        {
-                          "component": "oh-label-card",
-                          "config": {
-                            "icon": "person",
-                            "item": "spotifyArtistName",
-                            "title": "Artist"
-                          }
-                        },
-                        {
-                          "component": "oh-label-card",
-                          "config": {
-                            "icon": "album",
-                            "item": "spotifyAlbumName",
-                            "title": "Album"
-                          }
-                        },
-                        {
-                          "component": "oh-label-card",
-                          "config": {
-                            "footer": "of",
-                            "icon": "timer",
-                            "item": "spotifyTrackProgress",
-                            "title": "Progress"
-                          }
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-          ]
+          "titleItem": "spotifyTrackName",
+          "artistItem": "spotifyArtistName",
+          "imageItem": "spotifyAlbumArtUrl"
         }
       },
       {

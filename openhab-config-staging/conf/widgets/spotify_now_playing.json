@@ -1,0 +1,70 @@
+{
+  "uid": "spotify_now_playing",
+  "tags": [
+    "spotify",
+    "music",
+    "now-playing"
+  ],
+  "props": {
+    "parameters": [
+      {
+        "context": "item",
+        "description": "Item holding track name",
+        "label": "Title/Track Item",
+        "name": "titleItem",
+        "required": true,
+        "type": "TEXT"
+      },
+      {
+        "context": "item",
+        "label": "Artist/Subtitle Item",
+        "name": "artistItem",
+        "required": false,
+        "type": "TEXT"
+      },
+      {
+        "context": "item",
+        "label": "Album Art URL Item",
+        "name": "imageItem",
+        "required": false,
+        "type": "TEXT"
+      },
+      {
+        "context": "item",
+        "label": "Play Trigger Item (Switch)",
+        "name": "actionItem",
+        "required": false,
+        "type": "TEXT"
+      }
+    ],
+    "parameterGroups": []
+  },
+  "timestamp": "Jul 7, 2026, 9:26:46 AM",
+  "component": "oh-card",
+  "config": {
+    "title": "=items[props.titleItem].state || 'No track'",
+    "subtitle": "=items[props.artistItem].state || ''",
+    "footer": "Tap to play",
+    "style": {
+      "background-image": "=items[props.imageItem].state && items[props.imageItem].state !== 'NULL' ? 'url(' + items[props.imageItem].state + ')' : 'none'",
+      "background-size": "cover",
+      "background-position": "center",
+      "min-height": "120px",
+      "color": "white",
+      "text-shadow": "0 1px 3px rgba(0,0,0,0.9)"
+    },
+    "action": "command",
+    "actionItem": "=props.actionItem",
+    "actionCommand": "ON"
+  },
+  "slots": {
+    "default": [
+      {
+        "component": "oh-player-item",
+        "config": {
+          "item": "spotifyPlayer"
+        }
+      }
+    ]
+  }
+}

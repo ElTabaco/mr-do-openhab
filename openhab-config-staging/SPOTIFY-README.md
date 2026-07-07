@@ -52,3 +52,34 @@ If the Spotify bridge goes OFFLINE (token expired or revoked):
 | refreshPeriod | 30s | Polling interval (reduced from default 10s) |
 | Binding type | cloud | Outbound HTTPS to api.spotify.com only |
 | Premium required | Yes | Playback control needs Premium account |
+
+
+## Custom Widget: spotify_now_playing
+
+Reusable card widget based on community patterns (Multiroom Audio Player,
+OH4 Spotify Widget #155113, Spotify Widget #115391). Shows track name,
+artist, and album art as background. Tap to play if actionItem is set.
+
+### Parameters
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `titleItem` | Item (TEXT) | Yes | Item holding track name |
+| `artistItem` | Item (TEXT) | No | Item holding artist name (subtitle) |
+| `imageItem` | Item (TEXT) | No | Item holding album art URL |
+| `actionItem` | Item (TEXT) | No | Switch item — tap sends ON to it |
+
+### Used In
+
+- **Now Playing block** (display only, no actionItem)
+- **Search Results** (6 instances, one per result slot 1-6)
+  - `titleItem=spotifyResult{N}Track`
+  - `imageItem=spotifyResult{N}Art`
+  - `actionItem=spotifyResult{N}Play`
+
+### Tap Behavior
+
+When `actionItem` is set, tapping the card sends ON to that Switch item.
+The matching `spotify_play_{N}` rule reads the URI from
+`spotifyResult{N}URI` and sends it to `spotifyTrackPlay` (which is linked
+to the Spotify binding's trackPlay channel).
