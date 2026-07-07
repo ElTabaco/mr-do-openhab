@@ -18,6 +18,6 @@ spec:
   - ReadWriteMany
   volumeMode: Filesystem
   nfs:
-    server: 192.168.0.200
+    server: mr0.local
     path: "/srv/nfs4/homes/mr/mqtt"
     readOnly: false
