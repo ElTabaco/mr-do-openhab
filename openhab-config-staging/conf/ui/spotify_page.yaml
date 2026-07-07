@@ -5,7 +5,7 @@
     "parameters": [],
     "parameterGroups": []
   },
-  "timestamp": "Jul 7, 2026, 9:27:15 AM",
+  "timestamp": "Jul 7, 2026, 9:47:25 AM",
   "component": "oh-layout-page",
   "config": {
     "label": "Spotify",
@@ -124,11 +124,29 @@
         }
       },
       {
-        "component": "widget:spotify_now_playing",
+        "component": "oh-block",
         "config": {
-          "titleItem": "spotifyTrackName",
-          "artistItem": "spotifyArtistName",
-          "imageItem": "spotifyAlbumArtUrl"
+          "title": "Now Playing"
+        },
+        "slots": {
+          "default": [
+            {
+              "component": "oh-grid-cells",
+              "config": {},
+              "slots": {
+                "default": [
+                  {
+                    "component": "widget:spotify_now_playing",
+                    "config": {
+                      "titleItem": "spotifyTrackName",
+                      "artistItem": "spotifyArtistName",
+                      "imageItem": "spotifyAlbumArtUrl"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
         }
       },
       {

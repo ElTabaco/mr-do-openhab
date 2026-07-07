@@ -31,7 +31,7 @@ for i in 1 2 3 4 5 6; do
 done
 
 # Parse with jq, write to temp file, then read line by line in main shell
-echo "$RESULT" | jq -r '.tracks.items[] | "\(.artists[0].name) - \(.name)|\(.uri)|\(.album.images[0].url // "")"' > /tmp/spotify_results.txt
+echo "$RESULT" | jq -r '.tracks.items[] | "\(.artists[0].name) - \(.name)|\(.uri)|\(.album.images[0].url // "")"' > /openhab/userdata/spotify_results.txt
 
 COUNT=0
 while IFS='|' read -r title uri art; do
@@ -40,6 +40,6 @@ while IFS='|' read -r title uri art; do
     curl -sf -u "$AUTH" -X PUT -H "Content-Type: text/plain" -d "$title" "$OH/items/spotifyResult${COUNT}Track/state"
     curl -sf -u "$AUTH" -X PUT -H "Content-Type: text/plain" -d "$uri" "$OH/items/spotifyResult${COUNT}URI/state"
     curl -sf -u "$AUTH" -X PUT -H "Content-Type: text/plain" -d "$art" "$OH/items/spotifyResult${COUNT}Art/state"
-done < /tmp/spotify_results.txt
+done < /openhab/userdata/spotify_results.txt
 
 curl -sf -u "$AUTH" -X PUT -H "Content-Type: text/plain" -d "${COUNT} results for: $QUERY" "$OH/items/spotifySearchResults/state"
