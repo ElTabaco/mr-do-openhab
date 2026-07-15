@@ -8,6 +8,11 @@ spec:
     app: mr-do-openhab
   type: LoadBalancer
   loadBalancerIP: 192.168.0.22
+  # externalTrafficPolicy: Local preserves the real client source IP.
+  # Without this, kube-proxy MASQUERADE rewrites UDP source IPs to 10.42.0.0,
+  # and the Shelly binding can't match CoIoT push packets to devices → silently dropped.
+  # With Local, MetalLB only announces the VIP from the node running the pod → no SNAT.
+  externalTrafficPolicy: Local
   ports:
     - port: 80
       targetPort: 8080
