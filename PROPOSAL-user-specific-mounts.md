@@ -1,6 +1,22 @@
 # Proposal: Mount only user-specific files and folders
 
-Status: APPROVED
+Status: APPROVED, userdata part SUPERSEDED (2026-10, openHAB 5.2.1 upgrade)
+
+> **Superseded for `/openhab/userdata`.** The granular userdata mounts kept
+> `userdata/etc`, `userdata/cache` and `userdata/tmp` on the container filesystem.
+> Two problems followed:
+>
+> 1. Every container start was a cache-cleared start. openHAB re-installed all
+>    add-ons while the rule engine was already running. The resulting bundle refresh
+>    left UI rules with inline DSL scripts on a dead DSL script engine
+>    (`NullPointerException ... ScriptStandaloneSetup.getInjector()`,
+>    openhab-core #4813/#5221).
+> 2. Image upgrades never ran the userdata upgrade. The entrypoint compares
+>    `userdata/etc/version.properties` with the image; a container-local `etc` always
+>    matches, so `runtime/bin/update` and the JSON database upgrade tool were skipped.
+>
+> `/openhab/userdata` is now mounted as one directory (the layout the openHAB image is
+> designed for). The `/openhab/conf/*` granular mounts below are unchanged.
 
 ---
 

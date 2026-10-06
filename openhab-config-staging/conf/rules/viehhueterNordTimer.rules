@@ -1,29 +1,34 @@
-// viehhueterNordTimer.rules
-// Controls northern cattle herder timer
-// TODO: Verify timing logic matches your setup
+var Timer countdownViehhueterNordTimer = null
 
-var Timer viehhueterNordTimer = null
-
-rule "Viehhueter Nord Timer Start"
+rule "ViehhueterNord_Power_ON_Timer"
 when
-    Item Viehhueter_Mode changed to ON
+    Item Viehhueter_Power changed
 then
-    logInfo("viehhueterNord", "Viehhueter Nord gestartet")
-    if (viehhueterNordTimer === null) {
-        viehhueterNordTimer = createTimer(now.plusMinutes(30), [ |
-            Viehhueter_Mode.sendCommand(OFF)
-            logInfo("viehhueterNord", "Viehhueter Nord aus nach 30min")
-            viehhueterNordTimer = null
-        ])
+    if (Viehhueter_Power.state == ON)
+    {
+            if (countdownViehhueterNordTimer != NULL)
+            {
+                countdownViehhueterNordTimer?.cancel
+                countdownViehhueterNordTimer = null
+                Viehhueter_Countdown.postUpdate(0)
+            }
     }
-end
-
-rule "Viehhueter Nord Timer Stop"
-when
-    Item Viehhueter_Mode changed to OFF
-then
-    if (viehhueterNordTimer !== null) {
-        viehhueterNordTimer.cancel()
-        viehhueterNordTimer = null
+    else if (Viehhueter_Mode.state==OFF)
+    {
+            var remain = 120 //min
+            if (Viehhueter_Countdown_Time.state != NULL)
+            {
+                remain = ((((Viehhueter_Countdown_Time.state as QuantityType<Number>).toBigDecimal).intValue) * 60)
+            }
+            Viehhueter_Countdown.postUpdate(remain)
+            countdownViehhueterNordTimer = createTimer(now.plusMinutes(1), [|
+            remain = remain - 1
+            if( remain <= 0 ) {
+                remain = 0
+                Viehhueter_Power.sendCommand(ON)
+            }
+            Viehhueter_Countdown.postUpdate(remain)
+            if( remain > 0){ countdownViehhueterNordTimer.reschedule(now.plusMinutes(1))
+            }    ])
     }
 end

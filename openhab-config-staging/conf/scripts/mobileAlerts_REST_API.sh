@@ -1,10 +1,2 @@
-#!/bin/bash
-# mobileAlerts REST API script
-# Fetches sensor data from mobileAlerts cloud API
-# TODO: Replace with your actual API key and device IDs
-
-# API_KEY="your-api-key"
-# DEVICE_ID="your-device-id"
-# API_URL="https://measurements.mobile-alerts.com"
-
-echo "TODO: Implement mobileAlerts REST API call"
+# Reference copy. The live file on NFS contains the real MobileAlerts device IDs and phone ID.
+curl -s -X POST -d deviceids=<DEVICE_IDS> -d phoneid=<PHONE_ID> https://www.data199.com/api/pv1/device/lastmeasurement

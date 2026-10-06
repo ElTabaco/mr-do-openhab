@@ -1,11 +1,9 @@
-// redGarageDoor_Input.rules
-// Handles garage door input events
-// TODO: Verify logic matches your setup
-
-rule "Garagentor Steuerung"
+var timeout = 1 // sec
+ 
+rule "RedGarageDoor Input Rule"
 when
-    Item redGarageDoor_Input received command
+    Item redGarageDoor_Input received update
 then
-    logInfo("redGarageDoor", "Garagentor Befehl: {}", receivedCommand)
-    redGarageDoor_Input_Proxy.sendCommand(receivedCommand)
+   // logWarn("redGarageDoor", "Doorstate {}", redGarageDoor_Power.state)
+   redGarageDoor_Input_Proxy.postUpdate(if(redGarageDoor_Input.state == OFF) OPEN else CLOSED)
 end

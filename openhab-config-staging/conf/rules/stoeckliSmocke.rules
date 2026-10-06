@@ -1,18 +1,9 @@
-// stoeckliSmocke.rules
-// Monitors cottage smoke detector
-// TODO: Add notification logic (e.g. Telegram, email)
-
-rule "Stöckli Rauchmelder Alarm"
+import java.net.URLEncoder
+rule "Stoeckli Smoke Rule"
 when
     Item stoeckliSmoke_Smoke_Alarm changed to ON
 then
-    logWarn("stoeckliSmocke", "STÖCKLI RAUCHALARM!")
-    // TODO: Add notification (pushover, telegram, etc.)
-end
-
-rule "Stöckli Batterie Warnung"
-when
-    Item stoeckliSmoke_Low_Battery changed to ON
-then
-    logWarn("stoeckliSmocke", "Stöckli Rauchmelder Batterie schwach!")
+        sendNotification("<NOTIFICATION_EMAIL>", "ACHTUNG Stöckli brennt! ACHTUNG Stöckli brennt! ACHTUNG Stöckli brennt! ACHTUNG Stöckli brennt!", "Smoke", "high")
+        val urlmessage = URLEncoder::encode("ACHTUNG Stöckli brennt", 'UTF-8')
+        sendHttpGetRequest("http://api.callmebot.com/start.php?source=openHAB&user=@<CALLMEBOT_TELEGRAM_USER>&lang=de-DE-Standard-A&text=" + urlmessage)
 end

@@ -1,30 +1,31 @@
 # mr-do-openhab
 
-[openHAB](https://www.openhab.org/) home automation on Kubernetes, deployed via ArgoCD GitOps.
+[openHAB](https://www.openhab.org/) home automation on Kubernetes (k3s), deployed via ArgoCD GitOps.
 
 Two **independent** applications, each with its own ArgoCD Application and Service:
 
-- **openHAB** — automation runtime (web UI, rules, things, items)
-- **Mosquitto** — MQTT broker (standalone, reusable for other apps)
+- **openHAB 5.2.1**: automation runtime (web UI, rules, things, items)
+- **Mosquitto 2.1.2**: MQTT broker (standalone, reusable for other apps)
 
 ## Architecture
 
 ```
 ArgoCD
   ├── Application: mr-do-openhab      → kubernetes/openhab/
-  │     ├── Deployment (openhab: 9001)
+  │     ├── Deployment (openhab/openhab:5.2.1-alpine, user 9001)
   │     ├── Service (LoadBalancer 192.168.0.22)
   │     ├── PV + PVC (4 GiB NFS)
-  │     └── granular subPath mounts for user-specific config
+  │     └── mounts: /openhab/conf/* per directory, /openhab/userdata complete
   │
   └── Application: mqtt  → kubernetes/mqtt/
-        ├── Deployment (eclipse-mosquitto: 2.0.20)
+        ├── Deployment (eclipse-mosquitto:2.1.2-alpine, user 1883)
+        ├── ConfigMap (mosquitto.conf)
         ├── Service (LoadBalancer 192.168.0.23)
         └── dedicated PV + PVC (1 GiB NFS, separate path)
 ```
 
 Each app has its own PV and PVC. They live on the same NFS server but use
-different paths (`/srv/nfs4/homes/mr/openhab` and `/srv/nfs4/homes/mr/mqtt`)
+different paths (`/srv/nfs4/homes/mr/openhab` and `/srv/nfs4/homes/mr/mqtt`),
 so deleting one app does NOT affect the other's data.
 
 ## Deployment
@@ -51,22 +52,229 @@ so deleting one app does NOT affect the other's data.
 ### Manual sync (force ArgoCD refresh)
 
 ```bash
-kubectl annotate application mr-do-openhab     -n argocd argocd.argoproj.io/refresh=hard --overwrite
-kubectl annotate application mqtt -n argocd argocd.argoproj.io/refresh=hard --overwrite
+kubectl annotate application mr-do-openhab -n argocd argocd.argoproj.io/refresh=hard --overwrite
+kubectl annotate application mqtt          -n argocd argocd.argoproj.io/refresh=hard --overwrite
 ```
+
+## Configuration reference
+
+### ArgoCD Applications
+
+| Setting | `mr-do-openhab` | `mqtt` |
+|---------|-----------------|--------|
+| Manifest | `kubernetes/openhab/app.yaml` | `kubernetes/mqtt/app.yaml` |
+| Namespace (Application) | `argocd` | `argocd` |
+| Project | `default` | `default` |
+| Repository | `https://github.com/ElTabaco/mr-do-openhab.git` | same |
+| Target revision | `main` | `main` |
+| Path | `kubernetes/openhab` | `kubernetes/mqtt` |
+| Destination | `https://kubernetes.default.svc`, namespace `mr-do-openhab` | same |
+| Sync policy | automated, `prune: true`, `selfHeal: true` | same |
+| Sync options | `CreateNamespace=true` | same |
+| Ignored differences | Service `/status` (written by MetalLB) | same |
+
+The `mr-do-openhab` Application also manages its own Application object, so changes
+to `app.yaml` are applied by ArgoCD after merge.
+
+### openHAB Deployment (`kubernetes/openhab/deployment.yml`)
+
+| Setting | Value |
+|---------|-------|
+| Name / namespace / label | `mr-do-openhab` / `mr-do-openhab` / `app: mr-do-openhab` |
+| Image | `openhab/openhab:5.2.1-alpine` |
+| Replicas | `1` |
+| Update strategy | `Recreate` (one openHAB instance may own the data at a time) |
+| Revision history | `10` |
+| Pod `securityContext` | `fsGroup: 9001` |
+| Process user | The entrypoint starts as root (time zone, volume permissions, userdata upgrade), then runs openHAB as user/group `openhab` (UID/GID `9001`) via `su-exec` |
+
+**Container ports**
+
+| Port | Protocol | Purpose |
+|------|----------|---------|
+| 8080 | TCP | Web UI / REST API (HTTP) |
+| 8443 | TCP | Web UI / REST API (HTTPS) |
+| 5683 | UDP | Shelly CoIoT (CoAP) peer |
+| 5684 | TCP | CoAP secure |
+
+**Environment variables set by the manifest**
+
+| Variable | Value | Purpose |
+|----------|-------|---------|
+| `TZ` | `Europe/Berlin` | Container/OS time zone (set by the entrypoint) |
+| `EXTRA_JAVA_OPTS` | `-Duser.timezone=Europe/Berlin -XX:MaxRAMPercentage=50.0 -XX:+ExitOnOutOfMemoryError` | JVM time zone (cron rules, timestamps); max heap = 50 % of the memory limit (1 GiB); exit on heap exhaustion so Kubernetes restarts the container |
+
+**Environment defaults built into the image** (not overridden here)
+
+| Variable | Default |
+|----------|---------|
+| `OPENHAB_HTTP_PORT` | `8080` |
+| `OPENHAB_HTTPS_PORT` | `8443` |
+| `OPENHAB_HOME` | `/openhab` |
+| `OPENHAB_CONF` | `/openhab/conf` |
+| `OPENHAB_USERDATA` | `/openhab/userdata` |
+| `OPENHAB_LOGDIR` | `/openhab/userdata/logs` |
+| `OPENHAB_BACKUPS` | `/openhab/userdata/backup` |
+| `USER_ID` / `GROUP_ID` | `9001` / `9001` |
+| `CRYPTO_POLICY` | `limited` |
+| `EXTRA_SHELL_OPTS` | empty |
+| `KARAF_EXEC` | `exec` |
+| `LC_ALL` / `LANG` / `LANGUAGE` | `en_US.UTF-8` |
+
+**Resources**
+
+| | CPU | Memory |
+|-|-----|--------|
+| Requests | `500m` | `1Gi` (resident memory of the running JVM is about 0.9-1.0 GiB) |
+| Limits | `2` | `2Gi` |
+
+**Probes** (all `HTTP GET /` on port 8080)
+
+| Probe | Initial delay | Period | Timeout | Failure threshold |
+|-------|---------------|--------|---------|-------------------|
+| startup | 30 s | 15 s | 1 s (default) | 20 (up to 5.5 min for start and upgrade) |
+| readiness | - | 15 s | 5 s | 6 |
+| liveness | - | 30 s | 10 s | 3 |
+
+**Volume mounts** (all from PVC `mr-do-openhab-pvc-data`; NFS path = `/srv/nfs4/homes/mr/` + subPath)
+
+| Container path | subPath on the volume | Content |
+|----------------|----------------------|---------|
+| `/openhab/conf/items` | `openhab/conf/items` | `*.items` files |
+| `/openhab/conf/things` | `openhab/conf/things` | `*.things` files |
+| `/openhab/conf/rules` | `openhab/conf/rules` | DSL `*.rules` files |
+| `/openhab/conf/scripts` | `openhab/conf/scripts` | Scripts called by rules / exec binding |
+| `/openhab/conf/sitemaps` | `openhab/conf/sitemaps` | `*.sitemap` files |
+| `/openhab/conf/services` | `openhab/conf/services` | `addons.cfg`, `runtime.cfg`, `basicui.cfg`, ... |
+| `/openhab/conf/persistence` | `openhab/conf/persistence` | `*.persist` files (empty: persistence is configured in the UI) |
+| `/openhab/conf/transform` | `openhab/conf/transform` | `*.map` and other transformations |
+| `/openhab/conf/html` | `openhab/conf/html` | Static files served under `/static` |
+| `/openhab/conf/icons/classic` | `openhab/conf/icons/classic` | Custom icons |
+| `/openhab/conf/automation` | `openhab/conf/automation` | Script automation files |
+| `/openhab/conf/sounds` | `openhab/conf/sounds` | Sound files (alarm, doorbell, ...) |
+| `/openhab/conf/misc` | `openhab/conf/misc` | `exec.whitelist` |
+| `/openhab/userdata` | `openhab/userdata` | **Complete** userdata: `jsondb` (UI-managed things, items, rules, pages), `config`, `persistence` (rrd4j data), `secrets`, `openhabcloud`, `uuid`, `etc` (Karaf system files + `version.properties`), `cache`, `tmp`, `logs`, `backup` |
+| `/openhab/addons` | `openhab/addons` | Manually installed add-on JARs/KARs |
+
+The other `/openhab/conf` directories (for example `conf/tags`) come from the image.
+
+`/openhab/userdata` must be one persistent directory:
+
+- On start, the image entrypoint compares `userdata/etc/version.properties` with
+  the image. After an image version change it writes a backup to
+  `/openhab/userdata/backup/userdata-<timestamp>.tar` and runs `runtime/bin/update`.
+  That script replaces the Karaf system files, clears `cache`/`tmp` and runs the JSON
+  database upgrade tool. With a container-local `etc` this check never fires.
+- `cache` and `tmp` survive restarts, so add-ons are not downloaded and installed on
+  every start. A cache-cleared start installs add-ons while the rule engine is already
+  running. The resulting bundle refresh broke UI rules with inline DSL scripts
+  (`NullPointerException ... ScriptStandaloneSetup.getInjector()`, openhab-core
+  issues #4813 and #5221).
+
+### openHAB Service (`kubernetes/openhab/service.yml`)
+
+| Setting | Value |
+|---------|-------|
+| Name | `mr-do-openhab-service` |
+| Type | `LoadBalancer`, `loadBalancerIP: 192.168.0.22` (MetalLB) |
+| Selector | `app: mr-do-openhab` |
+
+| Name | Port | Target port | Protocol |
+|------|------|-------------|----------|
+| `webinterface` | 80 | 8080 | TCP |
+| `https-webinterface` | 8443 | 8443 | TCP |
+| `coiot-peer` | 5683 | 5683 | UDP |
+| `coap-secure-port` | 5684 | 5684 | TCP |
+
+### MQTT broker (`kubernetes/mqtt/`)
+
+| Setting | Value |
+|---------|-------|
+| Deployment | `mqtt`, label `app: mqtt`, 1 replica, strategy `Recreate`, revision history `10` |
+| Image | `eclipse-mosquitto:2.1.2-alpine` |
+| Pod `securityContext` | `runAsNonRoot: true`, `runAsUser: 1883`, `fsGroup: 1883` |
+| Container `securityContext` | `allowPrivilegeEscalation: false`, all capabilities dropped |
+| Environment | `TZ=Europe/Berlin` |
+| Resources | requests `50m` CPU / `64Mi`; limits `200m` CPU / `256Mi` |
+| Probes | readiness TCP 1883 (delay 5 s, period 10 s); liveness TCP 1883 (delay 10 s, period 30 s) |
+| Volume mounts | `/mosquitto/data` ← PVC `mqtt-pvc-data` subPath `mqtt/data`; `/mosquitto/config/mosquitto.conf` ← ConfigMap `mqtt-config` key `mosquitto.conf` |
+| Service | `mqtt`, `LoadBalancer`, `loadBalancerIP: 192.168.0.23`: `mqtt` 1883/TCP, `mqtt-websockets` 9001/TCP |
+
+`mosquitto.conf` (ConfigMap `mqtt-config`):
+
+| Setting | Value |
+|---------|-------|
+| `persistence` | `true` |
+| `persistence_location` | `/mosquitto/data/` |
+| `autosave_interval` | `1800` (seconds) |
+| `listener 1883` | MQTT, `allow_anonymous true` |
+| `listener 9001` | `protocol websockets`, `allow_anonymous true` |
+
+openHAB connects to the broker through the cluster Service name `mqtt`, port 1883
+(file-defined bridge `mqtt:broker:mosquitto` in `conf/things/mqtt.things`).
 
 ## Persistent Storage
 
-| App | PV | PVC | NFS Path | Size |
-|-----|----|----|----------|------|
-| openHAB | `mr-do-openhab-pv-data` | `mr-do-openhab-pvc-data` | `/srv/nfs4/homes/mr/openhab` | 4 GiB |
-| MQTT | `mqtt-pv-data` | `mqtt-pvc-data` | `/srv/nfs4/homes/mr/mqtt` | 1 GiB |
+| App | PV | PVC | NFS path | Size | Access mode |
+|-----|----|-----|----------|------|-------------|
+| openHAB | `mr-do-openhab-pv-data` | `mr-do-openhab-pvc-data` | `/srv/nfs4/homes/mr/openhab` | 4 GiB | `ReadWriteMany` |
+| MQTT | `mqtt-pv-data` | `mqtt-pvc-data` | `/srv/nfs4/homes/mr/mqtt` | 1 GiB | `ReadWriteMany` |
 
-Both PVs use NFS server `mr0.local`, `Retain` reclaim policy, `ReadWriteMany`.
+Both PVs use NFS server `mr0.local`, `persistentVolumeReclaimPolicy: Retain`,
+`storageClassName: ""` and `volumeMode: Filesystem`. The PVCs bind by label
+(`usage: mr-do-openhab-pv-data` / `usage: mqtt-pv-data`).
 
-**Mount strategy:** Only user-specific config and state directories are persisted
-(granular subPath mounts). Runtime data (cache, tmp, logs) stays ephemeral.
-See [PROPOSAL-user-specific-mounts.md](PROPOSAL-user-specific-mounts.md) for details.
+Layout of the openHAB volume (`/srv/nfs4/homes/mr/openhab`):
+
+```
+openhab/
+├── addons/      → /openhab/addons
+├── conf/        → /openhab/conf/<dir> (one mount per directory)
+└── userdata/    → /openhab/userdata
+```
+
+Files on the volume are owned by UID/GID 9001 (the `openhab` user in the image).
+
+## Upgrading openHAB
+
+1. Check the [release notes](https://github.com/openhab/openhab-distro/releases)
+   for breaking changes in the add-ons you use.
+2. Change the image tag in `kubernetes/openhab/deployment.yml` (and
+   `docker/docker-compose.yaml`), open a PR and merge it to `main`.
+3. ArgoCD recreates the pod. The entrypoint detects the version change, saves
+   `/openhab/userdata/backup/userdata-<timestamp>.tar` and runs the userdata upgrade
+   (log: `/openhab/userdata/logs/update.log`). openHAB then installs the add-ons from
+   `addons.cfg` into the new version. The startup probe allows up to 5.5 minutes.
+
+Rollback: restore the previous image tag together with the `userdata` backup tar from
+step 3. Downgrading the image without restoring userdata is not supported by openHAB.
+
+## Installed add-ons
+
+`conf/services/addons.cfg` defines the add-ons:
+
+| Type | Add-ons |
+|------|---------|
+| `package` | `standard` |
+| `binding` | `mqtt`, `shelly`, `exec`, `upnpcontrol` |
+| `persistence` | `rrd4j`, `inmemory` |
+| `ui` | `basic` |
+| `misc` | `openhabcloud` |
+| `transformation` | `exec`, `regex`, `jsonpath` |
+
+## Configuration files (`openhab-config-staging/`)
+
+`openhab-config-staging/conf/` is a reference copy of the file-based configuration on
+the NFS volume (`openhab/conf/`). It is **not** deployed by ArgoCD; the live files on
+NFS are the source of truth. Personal values are replaced by placeholders:
+
+| File | Placeholder |
+|------|-------------|
+| `conf/scripts/mobileAlerts_REST_API.sh` | `<DEVICE_IDS>`, `<PHONE_ID>` (MobileAlerts cloud API) |
+| `conf/rules/stoeckliSmocke.rules` | `<NOTIFICATION_EMAIL>`, `<CALLMEBOT_TELEGRAM_USER>` |
+
+Things, items, rules and pages created in the UI are stored in
+`userdata/jsondb` on the volume and are not part of this repository.
 
 ## Ports
 
@@ -85,8 +293,41 @@ For local/testing without Kubernetes, use `docker/docker-compose.yaml`:
 
 ```bash
 cd docker
+mkdir -p mqtt/config mqtt/data
+cp /path/to/mosquitto.conf mqtt/config/mosquitto.conf   # same content as the ConfigMap above
 docker compose up -d
 ```
+
+| Service | Image | Container name | Restart | Ports (host:container) |
+|---------|-------|----------------|---------|------------------------|
+| `mosquitto` | `eclipse-mosquitto:2.1.2-alpine` | `mqtt` | `always` | `1883:1883`, `9001:9001` |
+| `openhab` | `openhab/openhab:5.2.1-alpine` | `openhab` | `always` | `8080:8080`, `8443:8443`, `5683:5683/udp`, `5684:5684` |
+
+| Service | Host path (relative to `docker/`) | Container path |
+|---------|-----------------------------------|----------------|
+| `mosquitto` | `./mqtt/config/mosquitto.conf` | `/mosquitto/config/mosquitto.conf` |
+| `mosquitto` | `./mqtt/data` | `/mosquitto/data` |
+| `openhab` | `./openhab/conf/<dir>` (items, things, rules, scripts, sitemaps, services, persistence, transform, html, icons/classic, automation, sounds, misc) | `/openhab/conf/<dir>` |
+| `openhab` | `./openhab/userdata` | `/openhab/userdata` |
+| `openhab` | `./openhab/addons` | `/openhab/addons` |
+
+openHAB environment in Compose: `OPENHAB_HTTP_PORT=8080`, `OPENHAB_HTTPS_PORT=8443`,
+`TZ=Europe/Berlin`, `EXTRA_JAVA_OPTS=-Duser.timezone=Europe/Berlin`. Both services use
+the Compose network `default`. The MQTT bridge in `conf/things/mqtt.things` connects to
+host `mqtt`: in Kubernetes that is the Service name, in Compose the container name.
+
+## CI
+
+`.github/workflows/check-secrets.yml` runs `scripts/check-no-secrets.sh .` on every pull
+request to `main` and every push to `main`. The script fails on plain-text
+password/token values in YAML, hardcoded credential literals in `*.sh`, `*.py`,
+`*.conf`, `*.ini` and `*.cfg` files, hardcoded NFS server IPs and committed
+`last-applied-configuration` annotations. Run it locally with
+`bash scripts/check-no-secrets.sh .`.
+
+`scripts/openhab-health-check.py` prints pod, REST, thing and log status. It connects to
+the k3s control-plane node with SSH as `mr`, reading the password from `MR_SSH_PASSWORD`,
+and requires `paramiko`.
 
 ## Files
 
@@ -94,7 +335,7 @@ docker compose up -d
 kubernetes/
 ├── openhab/
 │   ├── app.yaml             # ArgoCD Application: mr-do-openhab
-│   ├── deployment.yml       # openHAB Deployment (securityContext, probes, resources)
+│   ├── deployment.yml       # openHAB Deployment (image, JVM options, probes, resources, mounts)
 │   ├── service.yml          # openHAB Service (LoadBalancer 192.168.0.22)
 │   ├── pv.yml               # PersistentVolume (NFS)
 │   ├── pvc.yml              # PersistentVolumeClaim
@@ -111,6 +352,11 @@ kubernetes/
     └── delete.sh            # Teardown (with confirmation)
 docker/
 └── docker-compose.yaml      # Standalone Docker deployment
+openhab-config-staging/
+└── conf/                    # Reference copy of the file-based openHAB configuration
+scripts/
+├── check-no-secrets.sh      # CI secrets guard
+└── openhab-health-check.py  # Health check over SSH
 ```
 
 ## Credits
