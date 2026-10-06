@@ -15,7 +15,7 @@ services:
 
   openhab:
     container_name: openhab
-    image: openhab/openhab:5.1.4-alpine
+    image: openhab/openhab:5.2.1-alpine
     restart: always
     # Same ports as the Kubernetes Service (web UI HTTP/HTTPS, Shelly CoIoT, CoAP secure).
     ports:
