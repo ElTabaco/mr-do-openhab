@@ -1,17 +1,8 @@
-// guellePressure.rules
-// Monitors manure pressure and controls the pump
-// TODO: Verify threshold values match your actual setup
-
-rule "Gülledruck überwachen"
+rule "GuellePressureRule"
 when
-    Item guellePressure changed
+    Item guellePumpe_Pressure changed
 then
-    if (guellePressure.state > 4.0) {
-        // Pressure too high - activate pump
-        guellePumpe_Power.sendCommand(ON)
-        logInfo("guellePressure", "Gülledruck hoch: {}, Pumpe eingeschaltet", guellePressure.state)
-    } else if (guellePressure.state < 1.5) {
-        guellePumpe_Power.sendCommand(OFF)
-        logInfo("guellePressure", "Gülledruck normal: {}, Pumpe aus", guellePressure.state)
-    }
+    var value =(((guellePumpe_Pressure.state as QuantityType<Number>).floatValue) * 5)
+    guellePressure.postUpdate(value)
+
 end

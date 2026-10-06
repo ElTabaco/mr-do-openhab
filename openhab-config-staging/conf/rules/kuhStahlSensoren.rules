@@ -1,17 +1,22 @@
-// kuhStahlSensoren.rules
-// Monitors cow stall sensors (temperature, humidity)
-// TODO: Add actual logic for your sensors
-
-rule "Kuhstall Temperatur Überwachung"
+rule "KuhstahlSensorenPharser"
 when
-    Item mrLivingHT_Temperature changed
+    Item KuhstahlSensoren received update
 then
-    logInfo("kuhStahlSensoren", "Wohnraum Temp: {} °C", mrLivingHT_Temperature.state)
-end
+//    logWarn("Viehueter", "Enter Viehueter_Power {}", Viehhueter_Power.state)
+    // use the transformation service to retrieve the value
+    var String json = KuhstahlSensoren.state.toString
+//    val tempAfter = transform("JSONPATH", "$.devices[0].measurement.t1", json)
 
-rule "Kindzimmer Temperatur Überwachung"
-when
-    Item mrChildHT_Temperature changed
-then
-    logInfo("kuhStahlSensoren", "Kindzimmer Temp: {} °C", mrChildHT_Temperature.state)
+
+//    logWarn("Trocknunggsanlage", "Trocknunggsanlage Before Temp {}", tempAfter)
+    // post the new value to the Number Item
+    trocknungsanlage_Before_Temp.postUpdate(transform("JSONPATH", "$.devices[0].measurement.t2", json))    
+    trocknungsanlage_After_Temp.postUpdate(transform("JSONPATH", "$.devices[0].measurement.t1", json))
+    trocknungsanlage_Roof_Temp.postUpdate(transform("JSONPATH", "$.devices[1].measurement.t1", json))
+    trocknungsanlage_Outside_Temp.postUpdate(transform("JSONPATH", "$.devices[2].measurement.t1", json))
+
+    trocknungsanlage_Before_Humidity.postUpdate(transform("JSONPATH", "$.devices[0].measurement.h2", json))
+    trocknungsanlage_After_Humidity.postUpdate(transform("JSONPATH", "$.devices[0].measurement.h", json))
+    trocknungsanlage_Outside_Humidity.postUpdate(transform("JSONPATH", "$.devices[2].measurement.h", json))
+
 end

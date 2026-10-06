@@ -1,29 +1,34 @@
-// viehhueterSuedTimer.rules
-// Controls southern cattle herder timer
-// TODO: Verify timing logic matches your setup
+var Timer countdownViehhueterSuedTimer = null
 
-var Timer viehhueterSuedTimer = null
-
-rule "Viehhueter Süd Timer Start"
+rule "ViehhueterSued_Power_ON_Timer"
 when
-    Item ViehhueterSued_Mode changed to ON
+    Item ViehhueterSued_Power changed
 then
-    logInfo("viehhueterSued", "Viehhueter Süd gestartet")
-    if (viehhueterSuedTimer === null) {
-        viehhueterSuedTimer = createTimer(now.plusMinutes(30), [ |
-            ViehhueterSued_Mode.sendCommand(OFF)
-            logInfo("viehhueterSued", "Viehhueter Süd aus nach 30min")
-            viehhueterSuedTimer = null
-        ])
+    if (ViehhueterSued_Power.state == ON)
+    {
+            if (countdownViehhueterSuedTimer != NULL)
+            {
+                countdownViehhueterSuedTimer?.cancel
+                countdownViehhueterSuedTimer = null
+                ViehhueterSued_Countdown.postUpdate(0)
+            }
     }
-end
-
-rule "Viehhueter Süd Timer Stop"
-when
-    Item ViehhueterSued_Mode changed to OFF
-then
-    if (viehhueterSuedTimer !== null) {
-        viehhueterSuedTimer.cancel()
-        viehhueterSuedTimer = null
+    else if (ViehhueterSued_Mode.state==OFF)
+    {
+            var remain = 120 //min
+            if (ViehhueterSued_Countdown_Time.state != NULL)
+            {
+                remain = ((((ViehhueterSued_Countdown_Time.state as QuantityType<Number>).toBigDecimal).intValue) * 60)
+            }
+            ViehhueterSued_Countdown.postUpdate(remain)
+            countdownViehhueterSuedTimer = createTimer(now.plusMinutes(1), [|
+            remain = remain - 1
+            if( remain <= 0 ) {
+                remain = 0
+                ViehhueterSued_Power.sendCommand(ON)
+            }
+            ViehhueterSued_Countdown.postUpdate(remain)
+            if( remain > 0){ countdownViehhueterSuedTimer.reschedule(now.plusMinutes(1))
+            }    ])
     }
 end

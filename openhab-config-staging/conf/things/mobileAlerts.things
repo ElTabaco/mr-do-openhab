@@ -1,0 +1,1 @@
+Thing exec:command:mobilealertsAPI "MobileAlerts API" [command="/openhab/conf/scripts/mobileAlerts_REST_API.sh", interval=400, timeout=15]
