@@ -3,7 +3,7 @@ services:
   mosquitto:
     container_name: mqtt
     restart: always
-    image: eclipse-mosquitto:2.0.20
+    image: eclipse-mosquitto:2.1.2-alpine
     ports:
       - 1883:1883
       - 9001:9001
@@ -17,6 +17,12 @@ services:
     container_name: openhab
     image: openhab/openhab:5.1.4-alpine
     restart: always
+    # Same ports as the Kubernetes Service (web UI HTTP/HTTPS, Shelly CoIoT, CoAP secure).
+    ports:
+      - 8080:8080
+      - 8443:8443
+      - 5683:5683/udp
+      - 5684:5684
     volumes:
       # --- /openhab/conf/* : user configuration only ---
       - ./openhab/conf/items:/openhab/conf/items
