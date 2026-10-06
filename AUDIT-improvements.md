@@ -71,6 +71,9 @@ Scanned: all files in repo. Findings prioritized BUG > SECURITY > RELIABILITY > 
 | D3 | docker-compose.yaml:1 | **`version: '3'` is obsolete** — Compose Spec no longer requires it | Remove the `version` key |
 | D4 | docker-compose.yaml:31 | **`network_mode: host`** for openhab but bridge for mosquitto — inconsistent | Use bridge for both, or document why host mode is needed |
 
+> **D1 superseded for `/openhab/userdata` (2026-10, openHAB 5.2.1 upgrade):** Kubernetes and Compose
+> mount the complete `/openhab/userdata` again. See the status note in `PROPOSAL-user-specific-mounts.md`.
+
 ---
 
 ## Summary

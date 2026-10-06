@@ -25,22 +25,6 @@ spec:
         # openHAB entrypoint starts as root to set timezone and fix volume
         # permissions, then drops to the openhab user (9001) via su-exec.
         # runAsNonRoot would prevent this startup sequence.
-      initContainers:
-        # Ensure file mount targets exist as files (not dirs) on fresh NFS
-        - name: ensure-files
-          image: busybox:1.36
-          securityContext:
-            runAsNonRoot: false
-            runAsUser: 0
-          command:
-            - sh
-            - -c
-            - |
-              touch /data/openhab/userdata/uuid
-              touch /data/openhab/userdata/Californium.properties
-          volumeMounts:
-            - name: openhab-data
-              mountPath: /data
       containers:
         - name: openhab
           image: openhab/openhab:5.1.4-alpine
@@ -131,31 +115,17 @@ spec:
             - name: openhab-data
               mountPath: /openhab/conf/misc
               subPath: openhab/conf/misc
-            # --- /openhab/userdata/* : user state only ---
+            # --- /openhab/userdata : complete userdata (state, etc, cache, tmp, logs) ---
+            # The image expects the whole userdata directory to be persistent:
+            # - the entrypoint compares userdata/etc/version.properties with the
+            #   image and, after an image version change, backs up userdata and runs
+            #   runtime/bin/update + the upgrade tool (JSON database migrations);
+            # - restarts keep cache/tmp, so add-ons are not re-installed on every
+            #   start (a cache-cleared start refreshes the DSL script engine and
+            #   breaks UI rules with inline DSL scripts, openhab-core #4813/#5221).
             - name: openhab-data
-              mountPath: /openhab/userdata/jsondb
-              subPath: openhab/userdata/jsondb
-            - name: openhab-data
-              mountPath: /openhab/userdata/secrets
-              subPath: openhab/userdata/secrets
-            - name: openhab-data
-              mountPath: /openhab/userdata/config
-              subPath: openhab/userdata/config
-            - name: openhab-data
-              mountPath: /openhab/userdata/kar
-              subPath: openhab/userdata/kar
-            - name: openhab-data
-              mountPath: /openhab/userdata/persistence
-              subPath: openhab/userdata/persistence
-            - name: openhab-data
-              mountPath: /openhab/userdata/openhabcloud
-              subPath: openhab/userdata/openhabcloud
-            - name: openhab-data
-              mountPath: /openhab/userdata/uuid
-              subPath: openhab/userdata/uuid
-            - name: openhab-data
-              mountPath: /openhab/userdata/Californium.properties
-              subPath: openhab/userdata/Californium.properties
+              mountPath: /openhab/userdata
+              subPath: openhab/userdata
             # --- /openhab/addons : manual add-ons ---
             - name: openhab-data
               mountPath: /openhab/addons
