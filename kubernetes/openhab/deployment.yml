@@ -40,13 +40,20 @@ spec:
           env:
             - name: TZ
               value: Europe/Berlin
-            # JVM-level timezone (controls cron rules, timestamps)
+            # Extra JVM options (appended by the openHAB start script):
+            # - user.timezone: JVM-level timezone (controls cron rules, timestamps)
+            # - MaxRAMPercentage=50.0: max heap = 50% of the memory limit (1 GiB of 2 GiB).
+            #   Without it the JVM default is 25% (512 MiB), which ran out of heap
+            #   (java.lang.OutOfMemoryError: Java heap space, container killed 2026-08-12).
+            # - ExitOnOutOfMemoryError: exit on OOM instead of running on with dead
+            #   core threads; Kubernetes restarts the container.
             - name: EXTRA_JAVA_OPTS
-              value: "-Duser.timezone=Europe/Berlin"
+              value: "-Duser.timezone=Europe/Berlin -XX:MaxRAMPercentage=50.0 -XX:+ExitOnOutOfMemoryError"
           resources:
             requests:
               cpu: 500m
-              memory: 512Mi
+              # Resident memory of the running JVM is ~0.9-1.0 GiB.
+              memory: 1Gi
             limits:
               cpu: "2"
               memory: 2Gi
