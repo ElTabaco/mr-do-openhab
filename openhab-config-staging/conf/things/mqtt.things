@@ -21,10 +21,4 @@ Bridge mqtt:broker:mosquitto "MQTT Broker" @ "Kuhstall" [
             Type number : temp "Temperatur" [ stateTopic="mrChildHT/temperature", unit="°C" ]
             Type number : hum  "Luftfeuchte" [ stateTopic="mrChildHT/humidity", unit="%" ]
     }
-    // Shower room temp/humidity sensor
-    Thing topic mrShowerHT "Bad Sensor" @ "Bad" {
-        Channels:
-            Type number : temp "Temperatur" [ stateTopic="mrShowerHT/temperature", unit="°C" ]
-            Type number : hum  "Luftfeuchte" [ stateTopic="mrShowerHT/humidity", unit="%" ]
-    }
 }

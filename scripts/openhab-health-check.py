@@ -11,7 +11,8 @@ import json
 
 K8S_MASTER = "192.168.0.200"
 SSH_USER = "mr"
-SSH_PASS = os.environ.get("MR_SSH_PASSWORD", "")
+# MR0_SSH_PASSWORD is the key in the secret store; MR_SSH_PASSWORD is still accepted
+SSH_PASS = os.environ.get("MR0_SSH_PASSWORD") or os.environ.get("MR_SSH_PASSWORD", "")
 NAMESPACE = "mr-do-openhab"
 
 client = paramiko.SSHClient()
@@ -60,15 +61,17 @@ if things is not None:
     for t in things:
         print(f"  {t.get('label','?')}: {t.get('statusInfo',{}).get('status','?')}")
 else:
-    print("Things: (REST not ready or auth required)")
+    # /rest/things needs an authenticated user (HTTP 401 for anonymous requests)
+    print("Things: (REST not ready, or HTTP 401: /rest/things requires authentication)")
 
 # Sitemaps
 sitemaps = rest("sitemaps")
 if sitemaps is not None:
     print(f"Sitemaps: {len(sitemaps)}")
 
-# Log errors
-out, _ = run(f"kubectl exec -n {NAMESPACE} deploy/mr-do-openhab -- sh -c 'grep -c ERROR /openhab/userdata/logs/openhab.log 2>&1' 2>&1")
+# Log errors (grep -c exits 1 when nothing matches; "|| true" keeps the count "0"
+# instead of kubectl's "command terminated with exit code 1")
+out, _ = run(f"kubectl exec -n {NAMESPACE} deploy/mr-do-openhab -- sh -c 'grep -c ERROR /openhab/userdata/logs/openhab.log || true' 2>&1")
 err_count = out.strip().split("\n")[-1] if out.strip() else "?"
 print(f"\nLog errors: {err_count}")
 
