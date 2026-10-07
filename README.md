@@ -279,7 +279,7 @@ If a sitemap later shows an external image or camera stream, add its host to
 | Type | Add-ons |
 |------|---------|
 | `package` | `standard` |
-| `binding` | `mqtt`, `shelly`, `exec`, `upnpcontrol` |
+| `binding` | `mqtt`, `shelly`, `exec` |
 | `persistence` | `rrd4j`, `inmemory` |
 | `ui` | `basic` |
 | `misc` | `openhabcloud` |
