@@ -4,7 +4,7 @@
 
 Two **independent** applications, each with its own ArgoCD Application and Service:
 
-- **openHAB 5.2.1**: automation runtime (web UI, rules, things, items)
+- **openHAB 5.2.2**: automation runtime (web UI, rules, things, items)
 - **Mosquitto 2.1.2**: MQTT broker (standalone, reusable for other apps)
 
 ## Architecture
@@ -12,7 +12,7 @@ Two **independent** applications, each with its own ArgoCD Application and Servi
 ```
 ArgoCD
   ├── Application: mr-do-openhab      → kubernetes/openhab/
-  │     ├── Deployment (openhab/openhab:5.2.1-alpine, user 9001)
+  │     ├── Deployment (openhab/openhab:5.2.2-alpine, user 9001)
   │     ├── Service (LoadBalancer 192.168.0.22)
   │     ├── PV + PVC (4 GiB NFS)
   │     └── mounts: /openhab/conf/* per directory, /openhab/userdata complete
@@ -92,7 +92,7 @@ that is no longer in Git.
 |---------|-------|
 | Name / namespace / label | `mr-do-openhab` / `mr-do-openhab` / `app: mr-do-openhab` |
 | Annotation | `argocd.argoproj.io/sync-options: ServerSideApply=true` (see ArgoCD Applications) |
-| Image | `openhab/openhab:5.2.1-alpine` |
+| Image | `openhab/openhab:5.2.2-alpine` |
 | Replicas | `1` |
 | Update strategy | `Recreate` (one openHAB instance may own the data at a time) |
 | Revision history | `10` |
@@ -260,6 +260,18 @@ Files on the volume are owned by UID/GID 9001 (the `openhab` user in the image).
 Rollback: restore the previous image tag together with the `userdata` backup tar from
 step 3. Downgrading the image without restoring userdata is not supported by openHAB.
 
+openHAB 5.2.2 (security release) has three breaking changes. None applies to this
+installation:
+
+| 5.2.2 change | Status here |
+|--------------|-------------|
+| Sitemap `/proxy` only serves hosts in Settings → Sitemap → `allowedHosts` (empty by default) | No sitemap uses `Image`, `Video`, `Webview` or `Mapview`; `Chart` does not use `/proxy` |
+| `trustedNetworks` ignores `X-Forwarded-For` | `trustedNetworks` is not set; clients use Basic Auth (`allowBasicAuth=true`) |
+| `/auth` requires a same-origin `redirect_uri` and PKCE | No third-party OAuth2 clients; the openHAB UIs are not affected |
+
+If a sitemap later shows an external image or camera stream, add its host to
+`allowedHosts`.
+
 ## Installed add-ons
 
 `conf/services/addons.cfg` defines the add-ons:
@@ -312,7 +324,7 @@ docker compose up -d
 | Service | Image | Container name | Restart | Ports (host:container) |
 |---------|-------|----------------|---------|------------------------|
 | `mosquitto` | `eclipse-mosquitto:2.1.2-alpine` | `mqtt` | `always` | `1883:1883`, `9001:9001` |
-| `openhab` | `openhab/openhab:5.2.1-alpine` | `openhab` | `always` | `8080:8080`, `8443:8443`, `5683:5683/udp`, `5684:5684` |
+| `openhab` | `openhab/openhab:5.2.2-alpine` | `openhab` | `always` | `8080:8080`, `8443:8443`, `5683:5683/udp`, `5684:5684` |
 
 | Service | Host path (relative to `docker/`) | Container path |
 |---------|-----------------------------------|----------------|

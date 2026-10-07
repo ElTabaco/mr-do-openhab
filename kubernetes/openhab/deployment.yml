@@ -31,7 +31,7 @@ spec:
         # runAsNonRoot would prevent this startup sequence.
       containers:
         - name: openhab
-          image: openhab/openhab:5.2.1-alpine
+          image: openhab/openhab:5.2.2-alpine
           ports:
             - containerPort: 8080
               protocol: TCP
