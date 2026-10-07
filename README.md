@@ -71,16 +71,27 @@ kubectl annotate application mqtt          -n argocd argocd.argoproj.io/refresh=
 | Destination | `https://kubernetes.default.svc`, namespace `mr-do-openhab` | same |
 | Sync policy | automated, `prune: true`, `selfHeal: true` | same |
 | Sync options | `CreateNamespace=true` | same |
+| Per-resource sync options | Deployment `mr-do-openhab`: `ServerSideApply=true` (annotation `argocd.argoproj.io/sync-options`) | none |
 | Ignored differences | Service `/status` (written by MetalLB) | same |
 
 The `mr-do-openhab` Application also manages its own Application object, so changes
 to `app.yaml` are applied by ArgoCD after merge.
+
+ArgoCD applies the openHAB Deployment with server-side apply. With the default
+client-side apply, a field that is deleted from `deployment.yml` stays in the cluster
+when the live object has no matching `last-applied-configuration` entry. ArgoCD does
+not report such leftovers as a difference, so the application still shows `Synced`.
+This happened after the userdata mount change: the old `ensure-files` init container
+and eight old `/openhab/userdata/*` mounts stayed in the live Deployment. With
+server-side apply, the field manager `argocd-controller` removes every field it owns
+that is no longer in Git.
 
 ### openHAB Deployment (`kubernetes/openhab/deployment.yml`)
 
 | Setting | Value |
 |---------|-------|
 | Name / namespace / label | `mr-do-openhab` / `mr-do-openhab` / `app: mr-do-openhab` |
+| Annotation | `argocd.argoproj.io/sync-options: ServerSideApply=true` (see ArgoCD Applications) |
 | Image | `openhab/openhab:5.2.1-alpine` |
 | Replicas | `1` |
 | Update strategy | `Recreate` (one openHAB instance may own the data at a time) |
