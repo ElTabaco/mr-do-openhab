@@ -299,6 +299,11 @@ NFS are the source of truth. Personal values are replaced by placeholders:
 Things, items, rules and pages created in the UI are stored in
 `userdata/jsondb` on the volume and are not part of this repository.
 
+| File | Content |
+|------|---------|
+| `conf/things/mqtt.things` | MQTT bridge `mqtt:broker:mosquitto` (host `mqtt`, port `1883`, clientId `openhab`, keepAlive `60`). No topic Things: the temperature/humidity sensors report through the Shelly binding; the LoRa water-level Thing `mqtt:topic:mosquitto:lora_sb_001` is UI-managed. |
+| `conf/rules/kuhStahlSensoren.rules` | Parses the MobileAlerts JSON (`KuhstahlSensoren`, exec Thing, every 400 s) into the `trocknungsanlage_*` items. A value is set to `UNDEF` when it is the MobileAlerts error code (`>= 43530`, probe not connected) or when the measurement timestamp `ts` is older than `3600` s (sensor no longer transmitting). |
+
 ## Ports
 
 | Service | IP | Port | Protocol | Purpose |
