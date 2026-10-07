@@ -349,8 +349,9 @@ password/token values in YAML, hardcoded credential literals in `*.sh`, `*.py`,
 `bash scripts/check-no-secrets.sh .`.
 
 `scripts/openhab-health-check.py` prints pod, REST, thing and log status. It connects to
-the k3s control-plane node with SSH as `mr`, reading the password from `MR_SSH_PASSWORD`,
-and requires `paramiko`.
+the k3s control-plane node with SSH as `mr`, reading the password from `MR0_SSH_PASSWORD`
+(fallback: `MR_SSH_PASSWORD`), and requires `paramiko`. REST calls run inside the pod
+without credentials, so `/rest/things` answers HTTP 401 and the thing list is not shown.
 
 ## Files
 
