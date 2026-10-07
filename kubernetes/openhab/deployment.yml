@@ -5,6 +5,10 @@ metadata:
   name: mr-do-openhab
   labels:
     app: mr-do-openhab
+  annotations:
+    # ArgoCD applies this Deployment with server-side apply, so fields removed
+    # from this file are removed from the cluster too (README: ArgoCD Applications).
+    argocd.argoproj.io/sync-options: ServerSideApply=true
 spec:
   replicas: 1
   revisionHistoryLimit: 10

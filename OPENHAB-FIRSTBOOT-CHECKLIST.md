@@ -30,9 +30,8 @@ Open http://192.168.0.22 in browser:
 MainUI → Settings → Add-ons → install:
 - MQTT Binding
 - MobileAlerts Binding
-- rrd4j Persistence
+- rrd4j Persistence (also restores item states on startup: strategy restoreOnStartup)
 - openHAB Cloud Connector
-- MapDB Persistence (optional, for restoreOnStartup)
 - Exec Binding (if using scripts)
 - Shelly Binding (if using Shelly devices)
 - miio Binding (if using Xiaomi devices)
