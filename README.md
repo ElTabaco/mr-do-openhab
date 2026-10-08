@@ -319,6 +319,30 @@ publishes it to MQTT; openHAB processes it immediately:
 | Sitemap `Wassertank` | chart of `LiterWater`, period `D`, `refresh=60000` ms (rrd4j stores one value per minute) |
 | Persistence | rrd4j, strategies `restoreOnStartup`, `everyChange`, `everyMinute` |
 
+### Performance settings (live, not deployed from Git)
+
+These settings live on the NFS volume (`userdata/`) or in the UI (jsondb), not in this repository.
+They were set on 2026-10-08 to remove load caused by the Shelly 3EM energy meter, which changes
+its values about twice per second.
+
+| Setting | Where | Value | Reason |
+|---------|-------|-------|--------|
+| rrd4j persistence | UI → Settings → Persistence → rrd4j (`jsondb/org.openhab.core.persistence.PersistenceServiceConfiguration.json`) | config 1: items `*`, strategies `restoreOnStartup`, `everyMinute`; config 2: items `*` except `PhaseMeasure_P*`, `PhaseMeasure_V*`, `PhaseMeasure_A*`, `PhaseMeasure_KWH*` (group members `Phase1-3_P/_V/_A/_KWH`), the groups themselves and `PhaseSum_P`, strategy `everyChange` | rrd4j keeps one value per 60 s step anyway; storing every 3EM change caused ~40 % of the NFS write operations |
+| Event log filter | `userdata/etc/log4j2.xml`, logger `openhab.event` | `<RegexFilter onMatch="DENY" onMismatch="NEUTRAL" regex="Item '(Phase[123]_(P\|V\|A\|KWH)\|PhaseSum_P\|PhaseMeasure_(P\|V\|A\|KWH))' (changed\|updated\|predicted) .*"/>` before `<AppenderRef ref="EVENT"/>` | the 3EM items were 96 % of `events.log` (~2.5 MB/h, rotation after ~2 days); now ~0.15 MB/h |
+| Total power | link + rule | `PhaseSum_P` (kW) linked to `shelly:shellyem3:PhaseMeasure:device#accumulatedPower`; rule `eggSumPower-1` (copied `PhaseMeasure_P` into `PhaseSum_P` on every change) disabled | one item update instead of a group change + DSL rule run per change |
+| `PhaseMeasure_A` | item | group base type `Number:ElectricCurrent`, function `SUM` | was `Number:ElectricPotential` → state always `UNDEF` |
+| Sitemap chart refresh | sitemaps `Milchtank`, `redSpresso`, `Wassertank` | `refresh=60000` | `refresh` is in milliseconds; `1` made Basic UI reload the chart image every 100 ms per chart and open browser |
+
+Notes:
+
+- openHAB 5.2.2 cannot reload `log4j2.xml` at runtime (pax-logging 2.3.3 logs
+  `NoClassDefFoundError: org/apache/logging/log4j/simple/internal/SimpleProvider` every 10 s).
+  After editing it, restart the pod (`kubectl delete pod -n mr-do-openhab -l app=mr-do-openhab`).
+- An openHAB upgrade can replace `userdata/etc/log4j2.xml` with the default (entries `DEFAULT;…log4j2.xml`
+  in `runtime/bin/update.lst`). After an upgrade check that the filter is still there.
+- The 3EM values are still visible in the UI and stored once per minute in rrd4j; only the
+  per-change storage and the `events.log` lines were removed.
+
 ## Ports
 
 | Service | IP | Port | Protocol | Purpose |
