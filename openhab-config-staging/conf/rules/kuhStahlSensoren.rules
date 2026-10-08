@@ -2,21 +2,37 @@ rule "KuhstahlSensorenPharser"
 when
     Item KuhstahlSensoren received update
 then
-//    logWarn("Viehueter", "Enter Viehueter_Power {}", Viehhueter_Power.state)
-    // use the transformation service to retrieve the value
-    var String json = KuhstahlSensoren.state.toString
-//    val tempAfter = transform("JSONPATH", "$.devices[0].measurement.t1", json)
-
-
-//    logWarn("Trocknunggsanlage", "Trocknunggsanlage Before Temp {}", tempAfter)
-    // post the new value to the Number Item
-    trocknungsanlage_Before_Temp.postUpdate(transform("JSONPATH", "$.devices[0].measurement.t2", json))    
-    trocknungsanlage_After_Temp.postUpdate(transform("JSONPATH", "$.devices[0].measurement.t1", json))
-    trocknungsanlage_Roof_Temp.postUpdate(transform("JSONPATH", "$.devices[1].measurement.t1", json))
-    trocknungsanlage_Outside_Temp.postUpdate(transform("JSONPATH", "$.devices[2].measurement.t1", json))
-
-    trocknungsanlage_Before_Humidity.postUpdate(transform("JSONPATH", "$.devices[0].measurement.h2", json))
-    trocknungsanlage_After_Humidity.postUpdate(transform("JSONPATH", "$.devices[0].measurement.h", json))
-    trocknungsanlage_Outside_Humidity.postUpdate(transform("JSONPATH", "$.devices[2].measurement.h", json))
-
+    val String json = KuhstahlSensoren.state.toString
+    val long nowSec = now.toEpochSecond
+    // [item, MobileAlerts device index, measurement field]
+    // devices[0]: drying plant before/after, devices[1]: roof, devices[2]: outside
+    val targets = newArrayList(
+        newArrayList("trocknungsanlage_Before_Temp", "0", "t2"),
+        newArrayList("trocknungsanlage_After_Temp", "0", "t1"),
+        newArrayList("trocknungsanlage_Roof_Temp", "1", "t1"),
+        newArrayList("trocknungsanlage_Outside_Temp", "2", "t1"),
+        newArrayList("trocknungsanlage_Before_Humidity", "0", "h2"),
+        newArrayList("trocknungsanlage_After_Humidity", "0", "h"),
+        newArrayList("trocknungsanlage_Outside_Humidity", "2", "h"))
+    targets.forEach[ t |
+        // A value is only valid when it is a real reading:
+        // - 43530 (and higher) is the MobileAlerts error code for "no reading / probe not connected";
+        // - the cloud API keeps returning the last measurement of a sensor that stopped
+        //   transmitting, so a measurement older than 3600 s (field "ts") counts as no reading.
+        // Invalid values set the item to UNDEF instead of showing a wrong number.
+        val String prefix = "$.devices[" + t.get(1) + "].measurement."
+        var String value = "UNDEF"
+        try {
+            val String ts = transform("JSONPATH", prefix + "ts", json)
+            val String raw = transform("JSONPATH", prefix + t.get(2), json)
+            if (ts !== null && raw !== null
+                    && nowSec - new java.math.BigDecimal(ts).longValue <= 3600
+                    && Double::parseDouble(raw) < 43530) {
+                value = raw
+            }
+        } catch (Exception e) {
+            logWarn("kuhStahlSensoren", "Cannot read {} from MobileAlerts response: {}", t.get(0), e.getMessage)
+        }
+        postUpdate(t.get(0), value)
+    ]
 end
