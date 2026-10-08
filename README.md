@@ -113,7 +113,7 @@ that is no longer in Git.
 | Variable | Value | Purpose |
 |----------|-------|---------|
 | `TZ` | `Europe/Berlin` | Container/OS time zone (set by the entrypoint) |
-| `EXTRA_JAVA_OPTS` | `-Duser.timezone=Europe/Berlin -XX:MaxRAMPercentage=50.0 -XX:+ExitOnOutOfMemoryError` | JVM time zone (cron rules, timestamps); max heap = 50 % of the memory limit (1 GiB); exit on heap exhaustion so Kubernetes restarts the container |
+| `EXTRA_JAVA_OPTS` | `-Duser.timezone=Europe/Berlin -XX:MaxRAMPercentage=50.0 -XX:+ExitOnOutOfMemoryError -Djdk.tls.server.enableSessionTicketExtension=false` | JVM time zone (cron rules, timestamps); max heap = 50 % of the memory limit (1 GiB); exit on heap exhaustion so Kubernetes restarts the container; no stateless TLS session tickets (the JDK sent an empty TLS 1.3 ticket that clients reject, so HTTPS on 8443 failed with TLS 1.3) |
 
 **Environment defaults built into the image** (not overridden here)
 
@@ -335,7 +335,7 @@ docker compose up -d
 | `openhab` | `./openhab/addons` | `/openhab/addons` |
 
 openHAB environment in Compose: `OPENHAB_HTTP_PORT=8080`, `OPENHAB_HTTPS_PORT=8443`,
-`TZ=Europe/Berlin`, `EXTRA_JAVA_OPTS=-Duser.timezone=Europe/Berlin`. Both services use
+`TZ=Europe/Berlin`, `EXTRA_JAVA_OPTS=-Duser.timezone=Europe/Berlin -Djdk.tls.server.enableSessionTicketExtension=false`. Both services use
 the Compose network `default`. The MQTT bridge in `conf/things/mqtt.things` connects to
 host `mqtt`: in Kubernetes that is the Service name, in Compose the container name.
 
