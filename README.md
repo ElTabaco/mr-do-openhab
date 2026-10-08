@@ -316,7 +316,7 @@ publishes it to MQTT; openHAB processes it immediately:
 | Thing / channel | `mqtt:topic:mosquitto:lora_sb_001:DistanceWater` (`mqtt:number`) |
 | Item | `lorasb001_DistanceWater` (`Number:Length`, unit `mm`, display pattern `%.1f cm`) |
 | Rule `WaterLevel` | trigger `core.ItemStateUpdateTrigger` on `lorasb001_DistanceWater` (every reading, also when the value is unchanged); computes `LiterWater = 5520 - (distance_mm * 0.1 - 25) * 40` and the alarm level `WaterAlarmLevel` (5 > 3500 l, 4 <= 3000 l, 3 <= 2500 l, 2 <= 2000 l, 1 <= 1000 l) |
-| Sitemap `Wassertank` | chart of `LiterWater`, period `D`, `refresh=60000` ms (rrd4j stores one value per minute) |
+| Sitemap `Wassertank` | chart of `LiterWater`, period `D`, `refresh=20000` ms (3 reloads per minute; rrd4j stores one value per minute) |
 | Persistence | rrd4j, strategies `restoreOnStartup`, `everyChange`, `everyMinute` |
 
 ### Performance settings (live, not deployed from Git)
@@ -331,7 +331,7 @@ its values about twice per second.
 | Event log filter | `userdata/etc/log4j2.xml`, logger `openhab.event` | `<RegexFilter onMatch="DENY" onMismatch="NEUTRAL" regex="Item '(Phase[123]_(P\|V\|A\|KWH)\|PhaseSum_P\|PhaseMeasure_(P\|V\|A\|KWH))' (changed\|updated\|predicted) .*"/>` before `<AppenderRef ref="EVENT"/>` | the 3EM items were 96 % of `events.log` (~2.5 MB/h, rotation after ~2 days); now ~0.15 MB/h |
 | Total power | link + rule | `PhaseSum_P` (kW) linked to `shelly:shellyem3:PhaseMeasure:device#accumulatedPower`; rule `eggSumPower-1` (copied `PhaseMeasure_P` into `PhaseSum_P` on every change) disabled | one item update instead of a group change + DSL rule run per change |
 | `PhaseMeasure_A` | item | group base type `Number:ElectricCurrent`, function `SUM` | was `Number:ElectricPotential` → state always `UNDEF` |
-| Sitemap chart refresh | sitemaps `Milchtank`, `redSpresso` / `Wassertank` | `refresh=3000` (20 reloads/min) / `refresh=60000` (1 reload/min) | `refresh` is in milliseconds; `1` made Basic UI reload the chart image every 100 ms per chart and open browser |
+| Sitemap chart refresh | sitemaps `Milchtank`, `redSpresso` / `Wassertank` | `refresh=3000` (20 reloads/min) / `refresh=20000` (3 reloads/min) | `refresh` is in milliseconds; `1` made Basic UI reload the chart image every 100 ms per chart and open browser |
 
 Notes:
 
