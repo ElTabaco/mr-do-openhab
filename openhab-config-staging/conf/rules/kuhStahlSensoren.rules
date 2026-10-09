@@ -5,15 +5,11 @@ then
     val String json = KuhstahlSensoren.state.toString
     val long nowSec = now.toEpochSecond
     // [item, MobileAlerts device index, measurement field]
-    // devices[0]: drying plant before/after, devices[1]: roof, devices[2]: outside
+    // devices[0]: outside sensor, the only device requested by mobileAlerts_REST_API.sh
+    // (the drying plant sensors before/after and roof were removed: no data since 2022/2023)
     val targets = newArrayList(
-        newArrayList("trocknungsanlage_Before_Temp", "0", "t2"),
-        newArrayList("trocknungsanlage_After_Temp", "0", "t1"),
-        newArrayList("trocknungsanlage_Roof_Temp", "1", "t1"),
-        newArrayList("trocknungsanlage_Outside_Temp", "2", "t1"),
-        newArrayList("trocknungsanlage_Before_Humidity", "0", "h2"),
-        newArrayList("trocknungsanlage_After_Humidity", "0", "h"),
-        newArrayList("trocknungsanlage_Outside_Humidity", "2", "h"))
+        newArrayList("trocknungsanlage_Outside_Temp", "0", "t1"),
+        newArrayList("trocknungsanlage_Outside_Humidity", "0", "h"))
     targets.forEach[ t |
         // A value is only valid when it is a real reading:
         // - 43530 (and higher) is the MobileAlerts error code for "no reading / probe not connected";

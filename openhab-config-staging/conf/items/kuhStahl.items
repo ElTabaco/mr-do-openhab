@@ -1,11 +1,3 @@
 String KuhstahlSensoren "Kuhstahl Sensoren" <kuhStahl> { channel="exec:command:mobilealertsAPI:output" } // run every 5mins. See Thing
-Number trocknungsanlage_Before_Temp "Temp Vor [%.1f °C]" <kuhStahl>
-Number trocknungsanlage_After_Temp "Temp Nach [%.1f °C]" <kuhStahl>
-Number trocknungsanlage_Roof_Temp "Temp Dach [%.1f °C]" <kuhStahl>
 Number trocknungsanlage_Outside_Temp "Temp Drausen [%.1f °C]" <kuhStahl>
-
-Number trocknungsanlage_Before_Humidity "Humidity Vor [%d %%]" <kuhStahl>
-Number trocknungsanlage_After_Humidity "Humidity Nach [%d %%]" <kuhStahl>
-//Number trocknungsanlage_Roof_Humidity "Humidity Dach [%d %%]" <kuhStahl>
 Number trocknungsanlage_Outside_Humidity "Humidity Drausen [%d %%]" <kuhStahl>
-
