@@ -1,3 +1,6 @@
+// Timer for the start watchdog
+var Timer wallboxStartTimer = null
+
 // Wallbox (Juice Charger me, OCPP binding) - derived values.
 // The wallbox has no energy meter, so power is an ESTIMATE:
 //   offered current (OCPP MeterValues Current.Offered) x 230 V x 3 phases, only while Status == Charging.
@@ -56,5 +59,41 @@ when
 then
     if (!(Wallbox_TransactionId.state instanceof DecimalType) && Wallbox_Pause.state == ON) {
         Wallbox_Pause.sendCommand(OFF)
+    }
+end
+
+// Start watchdog: with free charging the charger starts a session within a second of the plug-in.
+// If there is none after 60 s: send one remote start; if still none after 30 s more: show a warning
+// (the charger is then blocked until a reboot via its web UI).
+rule "Wallbox start watchdog"
+when
+    Item Wallbox_Status changed to Preparing
+then
+    wallboxStartTimer?.cancel
+    wallboxStartTimer = createTimer(now.plusSeconds(60), [|
+        if (Wallbox_Status.state.toString == "Preparing" && !(Wallbox_TransactionId.state instanceof DecimalType)) {
+            logWarn("wallbox", "No session 60 s after plug-in - sending remote start")
+            Wallbox_Charging.sendCommand(ON)
+            wallboxStartTimer = createTimer(now.plusSeconds(30), [|
+                if (Wallbox_Status.state.toString == "Preparing" && !(Wallbox_TransactionId.state instanceof DecimalType)) {
+                    logWarn("wallbox", "Charger did not start a session - reboot it via its web UI")
+                    Wallbox_StartBlocked.postUpdate(ON)
+                }
+                wallboxStartTimer = null
+            ])
+        } else {
+            wallboxStartTimer = null
+        }
+    ])
+end
+
+rule "Wallbox start watchdog reset"
+when
+    System started or
+    Item Wallbox_TransactionId changed or
+    Item Wallbox_Cable changed to OFF
+then
+    if (Wallbox_TransactionId.state instanceof DecimalType || Wallbox_Cable.state == OFF) {
+        Wallbox_StartBlocked.postUpdate(OFF)
     }
 end
