@@ -320,7 +320,7 @@ vendor cloud. The Things are stored in jsondb, not in this repository.
 | Modbus TCP server | off (`TCPConfigOnOff_modbus_slave=0`, port 502 closed). It was on with HEMS register 1000 = 6 A, which capped charging at 6 A |
 | Phases | 3 (`PhasesNumber_custom=2` = three-phase system) |
 | Current limits | installation 16 A, operator 16 A |
-| Energy meter | none: OCPP sends no MeterValues (tested: `Current.Offered` every 30 s accepted, but nothing sent during a session), Modbus meter registers return `0xFFFFFFFF`. Left on the charger from that test: `MeterValuesSampledData_meter=Current.Offered`, `MeterValuesAlignedData_meter=Current.Offered`, `MeterValueSampleInterval_meter=30` (no effect without a meter; originally `Energy.Active.Import.Register` / `0`) |
+| Energy meter | none: OCPP sends no MeterValues (tested: `Current.Offered` every 30 s accepted, but nothing sent during a session), Modbus meter registers return `0xFFFFFFFF`. Charger meter settings at their original values: `MeterValuesSampledData_meter=Energy.Active.Import.Register`, `MeterValuesAlignedData_meter=Energy.Active.Import.Register`, `MeterValueSampleInterval_meter=0`, `ClockAlignedDataInterval_meter=0` |
 | Web UI | `http://192.168.0.72/`, operator login; API `GET/POST /json/login` (password = SHA-256 of password + token), `/json/settings.json`, `/json/dashboard.json` |
 
 Charger behaviour (tested 2026-10-15):
