@@ -41,6 +41,8 @@ spec:
               protocol: UDP
             - containerPort: 5684
               protocol: TCP
+            - containerPort: 8887
+              protocol: TCP
           env:
             - name: TZ
               value: Europe/Berlin
