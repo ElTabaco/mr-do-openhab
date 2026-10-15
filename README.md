@@ -325,18 +325,24 @@ vendor cloud. The Things are stored in jsondb, not in this repository.
 
 Charger behaviour (tested 2026-10-15):
 
-- One session per plug-in. After a remote stop the connector stays `Finishing` while the cable is plugged in, and the
-  charger answers every `RemoteStartTransaction` with `Rejected` (tested with idTag `openhab` and `freecharging`).
-  A new session needs unplugging and plugging in again. No charger setting changes this
-  (`StopTransactionMode_ocpp=0` Normal, `AuthorizeRemoteStarts_ocpp=1`).
+- **No remote stop.** After a `RemoteStopTransaction` the charger starts no new session until it is rebooted:
+  while the cable stays plugged it is `Finishing` and answers every `RemoteStartTransaction` with `Rejected`
+  (idTag `openhab` and `freecharging`), and also after unplugging and plugging in again it stays in `Preparing`
+  (vehicle interface 0 A, no automatic start, remote start `Rejected`). Seen after sessions 3 and 4; a web-UI reboot
+  cleared it each time. No charger setting changes this (`StopTransactionMode_ocpp=0` Normal,
+  `AuthorizeRemoteStarts_ocpp=1`); probably a firmware 5.20 issue. The page therefore offers no remote stop.
+- Sessions end by unplugging. Tested: session 5 paused, unplugged → session ended normally; plugged in again →
+  session 6 started by itself 0.1 s later.
 - To interrupt and continue charging within a session, use `Pause`/`Resume` (0 A charging profile); the page
-  shows them as `Stop`/`Start`. Tested: Stop → `SuspendedEVSE`, 0 A offered; Start → 16 A offered again.
+  shows them as `Stop`/`Start`. Tested: Stop → `SuspendedEVSE`, 0 A offered; Start → limit offered again.
+- Fixed cable ("Angeschlagenes Kabel"): `UnlockConnector` → `NotSupported`. The only plug lock is in the car;
+  the car releases it (unlocking the car, or its own "release cable after charging" setting).
 - OCPP `Reset` (Soft) is answered `Accepted` but deferred while a car is connected, and while it is pending the
   charger starts no session at all: no automatic start on plug-in and `RemoteStartTransaction` → `Rejected` also in
   `Preparing`. A reboot via the web UI (`POST /json/settings.json {"reboot_requested":true,"params":[]}`) clears it;
   after the boot the charger started the session by itself. The `reset` channel is therefore not on the page.
 - With free charging (mode 4) a plug-in starts the session on its own; `Start session` is only needed if a
-  connector waits in `Preparing`.
+  connector waits in `Preparing`. The rule `Wallbox start watchdog` covers that case.
 
 Previous backend (offline since before the switch): `ws://be.elinc.de:8080/OCPPJProxyQA/v16/`.
 
@@ -358,9 +364,10 @@ Previous backend (offline since before the switch): `ws://be.elinc.de:8080/OCPPJ
 | `Wallbox_SessionDuration` | Number:Time | rule `Wallbox session duration` | `min`, `%.0f min` |
 | `Wallbox_TransactionId` | Number | `...:c1:transaction-id` (UNDEF when no session runs) | `%d` |
 | `Wallbox_SessionNumber` | Number | rule `Wallbox session number` (last transaction id, kept after the session ends) | `%d` |
+| `Wallbox_StartBlocked` | Switch | rule `Wallbox start watchdog` | `%s`, ON=Box does not start a session - reboot it in the box web UI (http://192.168.0.72), OFF=OK |
 | `Wallbox_IdTag` | String | `...:c1:id-tag` | |
-| `Wallbox_Unlock` | Switch | `...:c1:unlock` | |
-| `Wallbox_Reset` | Switch | `ocpp:chargepoint:main:jcme:reset` | |
+| `Wallbox_Unlock` | Switch | `...:c1:unlock` (not on the page: `NotSupported`, fixed cable) | |
+| `Wallbox_Reset` | Switch | `ocpp:chargepoint:main:jcme:reset` (not on the page: soft reset is deferred and blocks sessions) | |
 
 `...:c1` = `ocpp:connector:main:jcme:c1`.
 
@@ -371,6 +378,8 @@ Previous backend (offline since before the switch): `ws://be.elinc.de:8080/OCPPJ
 | `Wallbox power estimate` | System started; `Wallbox_Status` or `Wallbox_ChargeLimit` changed | While status is `Charging`: charge limit (max 16 A; 16 A without limit) x 230 V x 3 phases; else 0 kW. An estimate, not a measurement: the car may draw less |
 | `Wallbox session number` | System started; `Wallbox_TransactionId` changed | Copies the transaction id to `Wallbox_SessionNumber` when it is a number |
 | `Wallbox clear pause at session end` | `Wallbox_TransactionId` changed | When the session ends (`transaction-id` no longer a number) and `Wallbox_Pause` is ON: command `Wallbox_Pause` OFF, so a stop does not carry over into the next plug-in (the charge limit stays) |
+| `Wallbox start watchdog` | `Wallbox_Status` changed to `Preparing` | Timer 60 s: still `Preparing` and no transaction → log WARN, command `Wallbox_Charging` ON (remote start); timer 30 s more: still no session → log WARN, `Wallbox_StartBlocked` ON |
+| `Wallbox start watchdog reset` | System started; `Wallbox_TransactionId` changed; `Wallbox_Cable` changed to OFF | `Wallbox_StartBlocked` OFF when a transaction runs or the car is unplugged |
 | `Wallbox session duration` | cron `0 * * ? * *` (every minute); `Wallbox_TransactionId` changed | While a transaction runs: minutes since `Wallbox_SessionStart` |
 
 **Sitemap** `Wallbox` (UI-managed, `/rest/ui/components/system:sitemap/Wallbox`)
@@ -378,9 +387,9 @@ Previous backend (offline since before the switch): `ws://be.elinc.de:8080/OCPPJ
 | Frame | Widgets |
 |-------|---------|
 | Status | Status, car plugged in, power (estimate), connection (green/red) |
-| Control | `Charging: Stop / Start` = `Wallbox_Pause` ON/OFF (0 A profile, the session stays open; visible while `Wallbox_Charging==ON`), `Start session` (remote start, visible while `Wallbox_Status==Preparing`), hint text in `Finishing`, slider current limit 0-16 A step 1 (`releaseOnly`), quick buttons 6/10/16 A, Remove limit, Available/Unavailable |
+| Control | `Charging: Stop / Start` = `Wallbox_Pause` ON/OFF (0 A profile, the session stays open; visible while `Wallbox_Charging==ON`), `Start session` (remote start, visible while `Wallbox_Status==Preparing`), hint texts in `SuspendedEVSE` ("Stopped - press Start to continue, or unplug the car to end the session") and `Finishing`, red warning while `Wallbox_StartBlocked==ON`, slider current limit 0-16 A step 1 (`releaseOnly`), quick buttons 6/10/16 A, Remove limit, Available/Unavailable |
 | Session | start, duration, end, ID tag, session number |
-| Service | `End session` (remote stop, visible while a session runs; a new session then needs re-plugging), unlock cable, last contact. No reboot button (see charger behaviour) |
+| Service | last contact. No end-session (remote stop), unlock or reboot button (see charger behaviour) |
 
 ## Configuration files (`openhab-config-staging/`)
 
