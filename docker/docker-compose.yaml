@@ -23,6 +23,7 @@ services:
       - 8443:8443
       - 5683:5683/udp
       - 5684:5684
+      - 8887:8887
     volumes:
       # --- /openhab/conf/* : user configuration only ---
       - ./openhab/conf/items:/openhab/conf/items

@@ -107,6 +107,7 @@ that is no longer in Git.
 | 8443 | TCP | Web UI / REST API (HTTPS) |
 | 5683 | UDP | Shelly CoIoT (CoAP) peer |
 | 5684 | TCP | CoAP secure |
+| 8887 | TCP | OCPP 1.6-J central system (WebSocket, community OCPP binding) |
 
 **Environment variables set by the manifest**
 
@@ -196,6 +197,7 @@ The other `/openhab/conf` directories (for example `conf/tags`) come from the im
 | `https-webinterface` | 8443 | 8443 | TCP |
 | `coiot-peer` | 5683 | 5683 | UDP |
 | `coap-secure-port` | 5684 | 5684 | TCP |
+| `ocpp` | 8887 | 8887 | TCP |
 
 ### MQTT broker (`kubernetes/mqtt/`)
 
@@ -285,6 +287,36 @@ If a sitemap later shows an external image or camera stream, add its host to
 | `misc` | `openhabcloud` |
 | `transformation` | `exec`, `regex`, `jsonpath` |
 
+### Manually installed add-ons (`/openhab/addons`)
+
+Not in `addons.cfg` and not in the official distribution. The JAR lives on the NFS volume
+(`openhab/addons/`) and survives pod restarts and image upgrades.
+
+| File | Source | SHA-256 | Purpose |
+|------|--------|---------|---------|
+| `org.openhab.binding.ocpp-0.2.0.jar` (owner `openhab:openhab`) | Community OCPP binding 0.2.0 (beta, build of 11 Oct 2026, bundle version `5.3.0.202610111112`), [release](https://github.com/stamateviorel/openhab-addons/releases/tag/ocpp-0.2.0), [community topic](https://community.openhab.org/t/ocpp-5-2-0-0-6-0-0-0/169925), review PR [openhab-addons#21265](https://github.com/openhab/openhab-addons/pull/21265) | `c6ff387e3495cd9b9a0d6502fab8d24a1b0011dcf9d01e120c77698ae8825737` | openHAB acts as the OCPP 1.6-J backend for the wallbox |
+
+Remove the JAR when the binding becomes part of the official distribution, and install the
+official add-on instead.
+
+### Wallbox (OCPP, UI-managed)
+
+The Juice Charger me (Bender CC613 controller, firmware 5.20) connects to openHAB instead of a
+vendor cloud. The Things are stored in jsondb, not in this repository.
+
+| Thing UID | Type | Configuration |
+|-----------|------|---------------|
+| `ocpp:server:main` | OCPP Server (bridge) | `port=8887`, `host=0.0.0.0`, `heartbeatInterval=300`, `requestTimeoutSeconds=30`, `pingInterval=0`, `chargerIds=[JCME321406521292]` (allow-list: other charge point ids are rejected), no `authPassword` (OCPP security profile 0, LAN only) |
+| `ocpp:chargepoint:main:jcme` | OCPP Charge Point (bridge) | `chargePointId=JCME321406521292` |
+| `ocpp:connector:main:jcme:c1` | OCPP Connector | `connectorId=1` |
+
+| Wallbox setting | Value |
+|-----------------|-------|
+| IP | `192.168.0.72` |
+| ChargeBoxIdentity (ChargePointID) | `JCME321406521292` |
+| OCPP backend URL | `ws://192.168.0.22:8887/` (the controller appends the ChargeBoxIdentity) |
+| OCPP version | 1.6-J |
+
 ## Configuration files (`openhab-config-staging/`)
 
 `openhab-config-staging/conf/` is a reference copy of the file-based configuration on
@@ -351,6 +383,7 @@ Notes:
 | openHAB | 192.168.0.22 | 8443 | TCP | Web UI (HTTPS) |
 | openHAB | 192.168.0.22 | 5683 | UDP | CoIoT peer |
 | openHAB | 192.168.0.22 | 5684 | TCP | CoAP secure |
+| openHAB | 192.168.0.22 | 8887 | TCP | OCPP central system for the wallbox (`ws://192.168.0.22:8887/<chargePointId>`) |
 | MQTT | 192.168.0.23 | 1883 | TCP | MQTT broker |
 | MQTT | 192.168.0.23 | 9001 | TCP | MQTT over WebSocket |
 
@@ -368,7 +401,7 @@ docker compose up -d
 | Service | Image | Container name | Restart | Ports (host:container) |
 |---------|-------|----------------|---------|------------------------|
 | `mosquitto` | `eclipse-mosquitto:2.1.2-alpine` | `mqtt` | `always` | `1883:1883`, `9001:9001` |
-| `openhab` | `openhab/openhab:5.2.2-alpine` | `openhab` | `always` | `8080:8080`, `8443:8443`, `5683:5683/udp`, `5684:5684` |
+| `openhab` | `openhab/openhab:5.2.2-alpine` | `openhab` | `always` | `8080:8080`, `8443:8443`, `5683:5683/udp`, `5684:5684`, `8887:8887` |
 
 | Service | Host path (relative to `docker/`) | Container path |
 |---------|-----------------------------------|----------------|
