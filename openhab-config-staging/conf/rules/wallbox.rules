@@ -47,3 +47,14 @@ then
         Wallbox_SessionNumber.postUpdate(Wallbox_TransactionId.state)
     }
 end
+
+// Stop/Start on the page = pause/resume. A pause must not carry over into the next plug-in:
+// when the session ends, lift the pause (the charge limit stays).
+rule "Wallbox clear pause at session end"
+when
+    Item Wallbox_TransactionId changed
+then
+    if (!(Wallbox_TransactionId.state instanceof DecimalType) && Wallbox_Pause.state == ON) {
+        Wallbox_Pause.sendCommand(OFF)
+    }
+end
