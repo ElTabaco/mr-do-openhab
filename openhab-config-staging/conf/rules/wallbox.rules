@@ -12,14 +12,11 @@ rule "Wallbox power estimate"
 when
     System started or
     Item Wallbox_Status changed or
-    Item Wallbox_CurrentOffered changed or
     Item Wallbox_ChargeLimit changed
 then
     var double amps = 0.0
     if (Wallbox_Status.state.toString == "Charging") {
-        if (Wallbox_CurrentOffered.state instanceof QuantityType) {
-            amps = (Wallbox_CurrentOffered.state as QuantityType<?>).toUnit("A").doubleValue
-        } else if (Wallbox_ChargeLimit.state instanceof QuantityType) {
+        if (Wallbox_ChargeLimit.state instanceof QuantityType) {
             amps = Math::min((Wallbox_ChargeLimit.state as QuantityType<?>).toUnit("A").doubleValue, BOX_MAX_A)
         } else {
             amps = BOX_MAX_A
@@ -37,5 +34,16 @@ then
         val start = (Wallbox_SessionStart.state as DateTimeType).getZonedDateTime(java.time.ZoneId.systemDefault())
         val minutes = java.time.Duration.between(start, java.time.ZonedDateTime.now()).toMinutes
         Wallbox_SessionDuration.postUpdate(minutes.toString + " min")
+    }
+end
+
+// Session number = OCPP transaction id; kept after the session ends (transaction-id becomes UNDEF then).
+rule "Wallbox session number"
+when
+    System started or
+    Item Wallbox_TransactionId changed
+then
+    if (Wallbox_TransactionId.state instanceof DecimalType) {
+        Wallbox_SessionNumber.postUpdate(Wallbox_TransactionId.state)
     }
 end
