@@ -306,8 +306,8 @@ vendor cloud. The Things are stored in jsondb, not in this repository.
 
 | Thing UID | Type | Configuration |
 |-----------|------|---------------|
-| `ocpp:server:main` | OCPP Server (bridge) | `port=8887`, `host=0.0.0.0`, `heartbeatInterval=300`, `requestTimeoutSeconds=30`, `pingInterval=0`, `clockAlignedDataInterval=-1` (unchanged on the charger), `meterValuesData=Current.Offered`, `meterValueSampleInterval=30` (s; pushed to the charger on connect), `chargerIds=[JCME321406521292]` (allow-list: other charge point ids are rejected), no `authPassword` (OCPP security profile 0, LAN only) |
-| `ocpp:chargepoint:main:jcme` | OCPP Charge Point (bridge) | `chargePointId=JCME321406521292` |
+| `ocpp:server:main` | OCPP Server (bridge) | `port=8887`, `host=0.0.0.0`, `heartbeatInterval=300`, `requestTimeoutSeconds=30`, `pingInterval=0`, `clockAlignedDataInterval=-1`, `meterValueSampleInterval=-1`, `meterValuesData` empty (meter options unchanged on chargers), `chargerIds=[JCME321406521292]` (allow-list: other charge point ids are rejected), no `authPassword` (OCPP security profile 0, LAN only) |
+| `ocpp:chargepoint:main:jcme` | OCPP Charge Point (bridge) | `chargePointId=JCME321406521292`, `meterless=true` (no meter: the charger sends no MeterValues, the binding only sets `ClockAlignedDataInterval=0`) |
 | `ocpp:connector:main:jcme:c1` | OCPP Connector | `connectorId=1`, `phases=3`, `nominalVoltage=230`, `remoteStartTag=openhab`, other options at their defaults |
 
 | Wallbox setting | Value |
@@ -320,8 +320,18 @@ vendor cloud. The Things are stored in jsondb, not in this repository.
 | Modbus TCP server | off (`TCPConfigOnOff_modbus_slave=0`, port 502 closed). It was on with HEMS register 1000 = 6 A, which capped charging at 6 A |
 | Phases | 3 (`PhasesNumber_custom=2` = three-phase system) |
 | Current limits | installation 16 A, operator 16 A |
-| Energy meter | none (OCPP and Modbus deliver no energy values) |
+| Energy meter | none: OCPP sends no MeterValues (tested: `Current.Offered` every 30 s accepted, but nothing sent during a session), Modbus meter registers return `0xFFFFFFFF`. Left on the charger from that test: `MeterValuesSampledData_meter=Current.Offered`, `MeterValuesAlignedData_meter=Current.Offered`, `MeterValueSampleInterval_meter=30` (no effect without a meter; originally `Energy.Active.Import.Register` / `0`) |
 | Web UI | `http://192.168.0.72/`, operator login; API `GET/POST /json/login` (password = SHA-256 of password + token), `/json/settings.json`, `/json/dashboard.json` |
+
+Charger behaviour (tested 2026-10-15):
+
+- One session per plug-in. After a remote stop the connector stays `Finishing` while the cable is plugged in, and the
+  charger answers every `RemoteStartTransaction` with `Rejected` (tested with idTag `openhab` and `freecharging`).
+  A new session needs unplugging and plugging in again. No charger setting changes this
+  (`StopTransactionMode_ocpp=0` Normal, `AuthorizeRemoteStarts_ocpp=1`).
+- To interrupt and continue charging within a session, use `Pause`/`Resume` (0 A charging profile).
+- With free charging (mode 4) a plug-in starts the session on its own; `Start session` is only needed if a
+  connector waits in `Preparing`.
 
 Previous backend (offline since before the switch): `ws://be.elinc.de:8080/OCPPJProxyQA/v16/`.
 
@@ -329,11 +339,10 @@ Previous backend (offline since before the switch): `ws://be.elinc.de:8080/OCPPJ
 
 | Item | Type | Channel / source | Unit, pattern |
 |------|------|------------------|---------------|
-| `Wallbox_Connected` | Switch | `ocpp:chargepoint:main:jcme:connected` | ON=Connected, OFF=Offline |
+| `Wallbox_Connected` | Switch | `ocpp:chargepoint:main:jcme:connected` | `%s`, ON=Connected, OFF=Offline |
 | `Wallbox_LastSeen` | DateTime | `ocpp:chargepoint:main:jcme:last-seen` | `%1$td.%1$tm.%1$tY %1$tH:%1$tM:%1$tS` |
 | `Wallbox_Status` | String | `...:c1:charge-point-status` | OCPP status mapped to text (Available=Ready (no car), Preparing, Charging, SuspendedEV=Paused by car, SuspendedEVSE=Paused by wallbox, Finishing, Reserved, Unavailable, Faulted=Fault) |
-| `Wallbox_Cable` | Switch | `...:c1:cable-connected` | ON=Yes, OFF=No |
-| `Wallbox_CurrentOffered` | Number:ElectricCurrent | `...:c1:current-offered` | `A`, `%.0f A` |
+| `Wallbox_Cable` | Switch | `...:c1:cable-connected` | `%s`, ON=Yes, OFF=No |
 | `Wallbox_PowerEstimate` | Number:Power | rule `Wallbox power estimate` | `kW`, `%.1f kW` |
 | `Wallbox_Charging` | Switch | `...:c1:charging` (remote start/stop) | |
 | `Wallbox_Pause` | Switch | `...:c1:pause` | |
@@ -342,7 +351,8 @@ Previous backend (offline since before the switch): `ws://be.elinc.de:8080/OCPPJ
 | `Wallbox_Available` | Switch | `...:c1:availability` | |
 | `Wallbox_SessionStart` / `Wallbox_SessionStop` | DateTime | `...:c1:timestamp-start` / `timestamp-stop` | `%1$td.%1$tm.%1$tY %1$tH:%1$tM` |
 | `Wallbox_SessionDuration` | Number:Time | rule `Wallbox session duration` | `min`, `%.0f min` |
-| `Wallbox_TransactionId` | Number | `...:c1:transaction-id` | `%d` |
+| `Wallbox_TransactionId` | Number | `...:c1:transaction-id` (UNDEF when no session runs) | `%d` |
+| `Wallbox_SessionNumber` | Number | rule `Wallbox session number` (last transaction id, kept after the session ends) | `%d` |
 | `Wallbox_IdTag` | String | `...:c1:id-tag` | |
 | `Wallbox_Unlock` | Switch | `...:c1:unlock` | |
 | `Wallbox_Reset` | Switch | `ocpp:chargepoint:main:jcme:reset` | |
@@ -353,16 +363,17 @@ Previous backend (offline since before the switch): `ws://be.elinc.de:8080/OCPPJ
 
 | Rule | Trigger | Action |
 |------|---------|--------|
-| `Wallbox power estimate` | System started; `Wallbox_Status`, `Wallbox_CurrentOffered` or `Wallbox_ChargeLimit` changed | While status is `Charging`: offered current (fallback: charge limit, max 16 A; 16 A without limit) x 230 V x 3 phases; else 0 kW. An estimate of the offered power, not a measurement |
+| `Wallbox power estimate` | System started; `Wallbox_Status` or `Wallbox_ChargeLimit` changed | While status is `Charging`: charge limit (max 16 A; 16 A without limit) x 230 V x 3 phases; else 0 kW. An estimate, not a measurement: the car may draw less |
+| `Wallbox session number` | System started; `Wallbox_TransactionId` changed | Copies the transaction id to `Wallbox_SessionNumber` when it is a number |
 | `Wallbox session duration` | cron `0 * * ? * *` (every minute); `Wallbox_TransactionId` changed | While a transaction runs: minutes since `Wallbox_SessionStart` |
 
 **Sitemap** `Wallbox` (UI-managed, `/rest/ui/components/system:sitemap/Wallbox`)
 
 | Frame | Widgets |
 |-------|---------|
-| Status | Status, car plugged in, power (estimate), current offered, connection (green/red) |
-| Control | Charging start/stop, pause, slider current limit 0-16 A step 1 (`releaseOnly`), quick buttons 6/10/16 A, remove limit, available |
-| Session | start, duration, end, ID tag, transaction ID |
+| Status | Status, car plugged in, power (estimate), connection (green/red) |
+| Control | `Stop session` (visible while `Wallbox_Charging==ON`), `Start session` (visible while `Wallbox_Status==Preparing`), hint text in `Finishing`, Pause/Resume (visible while a session runs), slider current limit 0-16 A step 1 (`releaseOnly`), quick buttons 6/10/16 A, Remove limit, Available/Unavailable |
+| Session | start, duration, end, ID tag, session number |
 | Service | unlock cable, reboot wallbox, last contact |
 
 ## Configuration files (`openhab-config-staging/`)
