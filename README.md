@@ -306,16 +306,64 @@ vendor cloud. The Things are stored in jsondb, not in this repository.
 
 | Thing UID | Type | Configuration |
 |-----------|------|---------------|
-| `ocpp:server:main` | OCPP Server (bridge) | `port=8887`, `host=0.0.0.0`, `heartbeatInterval=300`, `requestTimeoutSeconds=30`, `pingInterval=0`, `chargerIds=[JCME321406521292]` (allow-list: other charge point ids are rejected), no `authPassword` (OCPP security profile 0, LAN only) |
+| `ocpp:server:main` | OCPP Server (bridge) | `port=8887`, `host=0.0.0.0`, `heartbeatInterval=300`, `requestTimeoutSeconds=30`, `pingInterval=0`, `clockAlignedDataInterval=-1` (unchanged on the charger), `meterValuesData=Current.Offered`, `meterValueSampleInterval=30` (s; pushed to the charger on connect), `chargerIds=[JCME321406521292]` (allow-list: other charge point ids are rejected), no `authPassword` (OCPP security profile 0, LAN only) |
 | `ocpp:chargepoint:main:jcme` | OCPP Charge Point (bridge) | `chargePointId=JCME321406521292` |
-| `ocpp:connector:main:jcme:c1` | OCPP Connector | `connectorId=1` |
+| `ocpp:connector:main:jcme:c1` | OCPP Connector | `connectorId=1`, `phases=3`, `nominalVoltage=230`, `remoteStartTag=openhab`, other options at their defaults |
 
 | Wallbox setting | Value |
 |-----------------|-------|
 | IP | `192.168.0.72` |
 | ChargeBoxIdentity (ChargePointID) | `JCME321406521292` |
 | OCPP backend URL | `ws://192.168.0.22:8887/` (the controller appends the ChargeBoxIdentity) |
-| OCPP version | 1.6-J |
+| OCPP version | 1.6-J (`TCP_IP_MODE_V2_tcpip=2`) |
+| Free charging | on (`FreeCharging_vehicleif=1`), mode `4` = full OCPP, fixed RFID UID `freecharging`, no authentication (`FreeChargingMode_ocpp`): plug-in starts charging also when openHAB is down; every session is an OCPP transaction |
+| Modbus TCP server | off (`TCPConfigOnOff_modbus_slave=0`, port 502 closed). It was on with HEMS register 1000 = 6 A, which capped charging at 6 A |
+| Phases | 3 (`PhasesNumber_custom=2` = three-phase system) |
+| Current limits | installation 16 A, operator 16 A |
+| Energy meter | none (OCPP and Modbus deliver no energy values) |
+| Web UI | `http://192.168.0.72/`, operator login; API `GET/POST /json/login` (password = SHA-256 of password + token), `/json/settings.json`, `/json/dashboard.json` |
+
+Previous backend (offline since before the switch): `ws://be.elinc.de:8080/OCPPJProxyQA/v16/`.
+
+**Items** (UI-managed, group `gWallbox`; `unit` and `stateDescription` metadata set)
+
+| Item | Type | Channel / source | Unit, pattern |
+|------|------|------------------|---------------|
+| `Wallbox_Connected` | Switch | `ocpp:chargepoint:main:jcme:connected` | ON=Connected, OFF=Offline |
+| `Wallbox_LastSeen` | DateTime | `ocpp:chargepoint:main:jcme:last-seen` | `%1$td.%1$tm.%1$tY %1$tH:%1$tM:%1$tS` |
+| `Wallbox_Status` | String | `...:c1:charge-point-status` | OCPP status mapped to text (Available=Ready (no car), Preparing, Charging, SuspendedEV=Paused by car, SuspendedEVSE=Paused by wallbox, Finishing, Reserved, Unavailable, Faulted=Fault) |
+| `Wallbox_Cable` | Switch | `...:c1:cable-connected` | ON=Yes, OFF=No |
+| `Wallbox_CurrentOffered` | Number:ElectricCurrent | `...:c1:current-offered` | `A`, `%.0f A` |
+| `Wallbox_PowerEstimate` | Number:Power | rule `Wallbox power estimate` | `kW`, `%.1f kW` |
+| `Wallbox_Charging` | Switch | `...:c1:charging` (remote start/stop) | |
+| `Wallbox_Pause` | Switch | `...:c1:pause` | |
+| `Wallbox_ChargeLimit` | Number:ElectricCurrent | `...:c1:charge-limit` (0 stops the charge) | `A`, `%.0f A` |
+| `Wallbox_ClearLimit` | Switch | `...:c1:clear-limit` | |
+| `Wallbox_Available` | Switch | `...:c1:availability` | |
+| `Wallbox_SessionStart` / `Wallbox_SessionStop` | DateTime | `...:c1:timestamp-start` / `timestamp-stop` | `%1$td.%1$tm.%1$tY %1$tH:%1$tM` |
+| `Wallbox_SessionDuration` | Number:Time | rule `Wallbox session duration` | `min`, `%.0f min` |
+| `Wallbox_TransactionId` | Number | `...:c1:transaction-id` | `%d` |
+| `Wallbox_IdTag` | String | `...:c1:id-tag` | |
+| `Wallbox_Unlock` | Switch | `...:c1:unlock` | |
+| `Wallbox_Reset` | Switch | `ocpp:chargepoint:main:jcme:reset` | |
+
+`...:c1` = `ocpp:connector:main:jcme:c1`.
+
+**Rules** `conf/rules/wallbox.rules` (copy in `openhab-config-staging/`)
+
+| Rule | Trigger | Action |
+|------|---------|--------|
+| `Wallbox power estimate` | System started; `Wallbox_Status`, `Wallbox_CurrentOffered` or `Wallbox_ChargeLimit` changed | While status is `Charging`: offered current (fallback: charge limit, max 16 A; 16 A without limit) x 230 V x 3 phases; else 0 kW. An estimate of the offered power, not a measurement |
+| `Wallbox session duration` | cron `0 * * ? * *` (every minute); `Wallbox_TransactionId` changed | While a transaction runs: minutes since `Wallbox_SessionStart` |
+
+**Sitemap** `Wallbox` (UI-managed, `/rest/ui/components/system:sitemap/Wallbox`)
+
+| Frame | Widgets |
+|-------|---------|
+| Status | Status, car plugged in, power (estimate), current offered, connection (green/red) |
+| Control | Charging start/stop, pause, slider current limit 0-16 A step 1 (`releaseOnly`), quick buttons 6/10/16 A, remove limit, available |
+| Session | start, duration, end, ID tag, transaction ID |
+| Service | unlock cable, reboot wallbox, last contact |
 
 ## Configuration files (`openhab-config-staging/`)
 
@@ -334,6 +382,7 @@ Things, items, rules and pages created in the UI are stored in
 | File | Content |
 |------|---------|
 | `conf/things/mqtt.things` | MQTT bridge `mqtt:broker:mosquitto` (host `mqtt`, port `1883`, clientId `openhab`, keepAlive `60`). No topic Things: the temperature/humidity sensors report through the Shelly binding; the LoRa water-level Thing `mqtt:topic:mosquitto:lora_sb_001` is UI-managed. |
+| `conf/rules/wallbox.rules` | Wallbox power estimate and session duration (see section Wallbox). |
 | `conf/rules/kuhStahlSensoren.rules` | Parses the MobileAlerts JSON (`KuhstahlSensoren`, exec Thing, every 400 s) into `trocknungsanlage_Outside_Temp` (`devices[0].measurement.t1`) and `trocknungsanlage_Outside_Humidity` (`devices[0].measurement.h`). The script requests only the outside sensor; the drying plant sensors (before/after, roof) were removed on 2026-10-09 (no data since 2022/2023). A value is set to `UNDEF` when it is the MobileAlerts error code (`>= 43530`, probe not connected) or when the measurement timestamp `ts` is older than `3600` s (sensor no longer transmitting). |
 
 ### Water tank level (LoRa, UI-managed)

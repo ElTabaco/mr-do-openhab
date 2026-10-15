@@ -1,0 +1,41 @@
+// Wallbox (Juice Charger me, OCPP binding) - derived values.
+// The wallbox has no energy meter, so power is an ESTIMATE:
+//   offered current (OCPP MeterValues Current.Offered) x 230 V x 3 phases, only while Status == Charging.
+//   If the box does not report Current.Offered, the active charge limit is used (16 A when no limit is set).
+// The car may draw less than offered (battery full, charge schedule in the car).
+
+val double VOLTAGE = 230.0
+val double PHASES = 3.0
+val double BOX_MAX_A = 16.0
+
+rule "Wallbox power estimate"
+when
+    System started or
+    Item Wallbox_Status changed or
+    Item Wallbox_CurrentOffered changed or
+    Item Wallbox_ChargeLimit changed
+then
+    var double amps = 0.0
+    if (Wallbox_Status.state.toString == "Charging") {
+        if (Wallbox_CurrentOffered.state instanceof QuantityType) {
+            amps = (Wallbox_CurrentOffered.state as QuantityType<?>).toUnit("A").doubleValue
+        } else if (Wallbox_ChargeLimit.state instanceof QuantityType) {
+            amps = Math::min((Wallbox_ChargeLimit.state as QuantityType<?>).toUnit("A").doubleValue, BOX_MAX_A)
+        } else {
+            amps = BOX_MAX_A
+        }
+    }
+    Wallbox_PowerEstimate.postUpdate((amps * VOLTAGE * PHASES / 1000.0).toString + " kW")
+end
+
+rule "Wallbox session duration"
+when
+    Time cron "0 * * ? * *" or
+    Item Wallbox_TransactionId changed
+then
+    if (Wallbox_TransactionId.state instanceof DecimalType && Wallbox_SessionStart.state instanceof DateTimeType) {
+        val start = (Wallbox_SessionStart.state as DateTimeType).getZonedDateTime(java.time.ZoneId.systemDefault())
+        val minutes = java.time.Duration.between(start, java.time.ZonedDateTime.now()).toMinutes
+        Wallbox_SessionDuration.postUpdate(minutes.toString + " min")
+    }
+end
