@@ -329,7 +329,12 @@ Charger behaviour (tested 2026-10-15):
   charger answers every `RemoteStartTransaction` with `Rejected` (tested with idTag `openhab` and `freecharging`).
   A new session needs unplugging and plugging in again. No charger setting changes this
   (`StopTransactionMode_ocpp=0` Normal, `AuthorizeRemoteStarts_ocpp=1`).
-- To interrupt and continue charging within a session, use `Pause`/`Resume` (0 A charging profile).
+- To interrupt and continue charging within a session, use `Pause`/`Resume` (0 A charging profile); the page
+  shows them as `Stop`/`Start`. Tested: Stop → `SuspendedEVSE`, 0 A offered; Start → 16 A offered again.
+- OCPP `Reset` (Soft) is answered `Accepted` but deferred while a car is connected, and while it is pending the
+  charger starts no session at all: no automatic start on plug-in and `RemoteStartTransaction` → `Rejected` also in
+  `Preparing`. A reboot via the web UI (`POST /json/settings.json {"reboot_requested":true,"params":[]}`) clears it;
+  after the boot the charger started the session by itself. The `reset` channel is therefore not on the page.
 - With free charging (mode 4) a plug-in starts the session on its own; `Start session` is only needed if a
   connector waits in `Preparing`.
 
@@ -365,6 +370,7 @@ Previous backend (offline since before the switch): `ws://be.elinc.de:8080/OCPPJ
 |------|---------|--------|
 | `Wallbox power estimate` | System started; `Wallbox_Status` or `Wallbox_ChargeLimit` changed | While status is `Charging`: charge limit (max 16 A; 16 A without limit) x 230 V x 3 phases; else 0 kW. An estimate, not a measurement: the car may draw less |
 | `Wallbox session number` | System started; `Wallbox_TransactionId` changed | Copies the transaction id to `Wallbox_SessionNumber` when it is a number |
+| `Wallbox clear pause at session end` | `Wallbox_TransactionId` changed | When the session ends (`transaction-id` no longer a number) and `Wallbox_Pause` is ON: command `Wallbox_Pause` OFF, so a stop does not carry over into the next plug-in (the charge limit stays) |
 | `Wallbox session duration` | cron `0 * * ? * *` (every minute); `Wallbox_TransactionId` changed | While a transaction runs: minutes since `Wallbox_SessionStart` |
 
 **Sitemap** `Wallbox` (UI-managed, `/rest/ui/components/system:sitemap/Wallbox`)
@@ -372,9 +378,9 @@ Previous backend (offline since before the switch): `ws://be.elinc.de:8080/OCPPJ
 | Frame | Widgets |
 |-------|---------|
 | Status | Status, car plugged in, power (estimate), connection (green/red) |
-| Control | `Stop session` (visible while `Wallbox_Charging==ON`), `Start session` (visible while `Wallbox_Status==Preparing`), hint text in `Finishing`, Pause/Resume (visible while a session runs), slider current limit 0-16 A step 1 (`releaseOnly`), quick buttons 6/10/16 A, Remove limit, Available/Unavailable |
+| Control | `Charging: Stop / Start` = `Wallbox_Pause` ON/OFF (0 A profile, the session stays open; visible while `Wallbox_Charging==ON`), `Start session` (remote start, visible while `Wallbox_Status==Preparing`), hint text in `Finishing`, slider current limit 0-16 A step 1 (`releaseOnly`), quick buttons 6/10/16 A, Remove limit, Available/Unavailable |
 | Session | start, duration, end, ID tag, session number |
-| Service | unlock cable, reboot wallbox, last contact |
+| Service | `End session` (remote stop, visible while a session runs; a new session then needs re-plugging), unlock cable, last contact. No reboot button (see charger behaviour) |
 
 ## Configuration files (`openhab-config-staging/`)
 
