@@ -341,8 +341,13 @@ Charger behaviour (tested 2026-10-15):
   charger starts no session at all: no automatic start on plug-in and `RemoteStartTransaction` → `Rejected` also in
   `Preparing`. A reboot via the web UI (`POST /json/settings.json {"reboot_requested":true,"params":[]}`) clears it;
   after the boot the charger started the session by itself. The `reset` channel is therefore not on the page.
-- With free charging (mode 4) a plug-in starts the session on its own; `Start session` is only needed if a
-  connector waits in `Preparing`. The rule `Wallbox start watchdog` covers that case.
+- **No remote start.** Free charging mode 4 (`FreeChargingMode_ocpp=4`, "With OCPP Full fixed RFID without auth")
+  starts the session on its own at plug-in, and in this mode `RemoteStartTransaction` is inactive by design
+  (Bender docs, Authorization → Free Charging modes, v5.38.2). All 5 remote starts on 2026-10-15 → `Rejected`.
+  The page therefore offers no `Start session`; the rule `Wallbox start watchdog` only warns.
+- Firmware 5.20.4-13148 (controller B94060027 CC613_ELPR). Not updated: the only public file for this box
+  (Juice 5.34.0-21353) has reported OCPP/free-charging problems, newer Bender versions are only available
+  via Bender/Juice support, and no published changelog mentions the remote-stop problem above.
 
 Previous backend (offline since before the switch): `ws://be.elinc.de:8080/OCPPJProxyQA/v16/`.
 
@@ -355,7 +360,7 @@ Previous backend (offline since before the switch): `ws://be.elinc.de:8080/OCPPJ
 | `Wallbox_Status` | String | `...:c1:charge-point-status` | OCPP status mapped to text (Available=Ready (no car), Preparing, Charging, SuspendedEV=Paused by car, SuspendedEVSE=Paused by wallbox, Finishing, Reserved, Unavailable, Faulted=Fault) |
 | `Wallbox_Cable` | Switch | `...:c1:cable-connected` | `%s`, ON=Yes, OFF=No |
 | `Wallbox_PowerEstimate` | Number:Power | rule `Wallbox power estimate` | `kW`, `%.1f kW` |
-| `Wallbox_Charging` | Switch | `...:c1:charging` (remote start/stop) | |
+| `Wallbox_Charging` | Switch | `...:c1:charging` (ON while a session runs; its commands remote start/stop are not on the page) | |
 | `Wallbox_Pause` | Switch | `...:c1:pause` | |
 | `Wallbox_ChargeLimit` | Number:ElectricCurrent | `...:c1:charge-limit` (0 stops the charge) | `A`, `%.0f A` |
 | `Wallbox_ClearLimit` | Switch | `...:c1:clear-limit` | |
@@ -378,7 +383,7 @@ Previous backend (offline since before the switch): `ws://be.elinc.de:8080/OCPPJ
 | `Wallbox power estimate` | System started; `Wallbox_Status` or `Wallbox_ChargeLimit` changed | While status is `Charging`: charge limit (max 16 A; 16 A without limit) x 230 V x 3 phases; else 0 kW. An estimate, not a measurement: the car may draw less |
 | `Wallbox session number` | System started; `Wallbox_TransactionId` changed | Copies the transaction id to `Wallbox_SessionNumber` when it is a number |
 | `Wallbox clear pause at session end` | `Wallbox_TransactionId` changed | When the session ends (`transaction-id` no longer a number) and `Wallbox_Pause` is ON: command `Wallbox_Pause` OFF, so a stop does not carry over into the next plug-in (the charge limit stays) |
-| `Wallbox start watchdog` | `Wallbox_Status` changed to `Preparing` | Timer 60 s: still `Preparing` and no transaction → log WARN, command `Wallbox_Charging` ON (remote start); timer 30 s more: still no session → log WARN, `Wallbox_StartBlocked` ON |
+| `Wallbox start watchdog` | `Wallbox_Status` changed to `Preparing` | Timer 60 s: still `Preparing` and no transaction → log WARN, `Wallbox_StartBlocked` ON. No remote start (rejected in free charging mode 4) |
 | `Wallbox start watchdog reset` | System started; `Wallbox_TransactionId` changed; `Wallbox_Cable` changed to OFF | `Wallbox_StartBlocked` OFF when a transaction runs or the car is unplugged |
 | `Wallbox session duration` | cron `0 * * ? * *` (every minute); `Wallbox_TransactionId` changed | While a transaction runs: minutes since `Wallbox_SessionStart` |
 
@@ -387,9 +392,9 @@ Previous backend (offline since before the switch): `ws://be.elinc.de:8080/OCPPJ
 | Frame | Widgets |
 |-------|---------|
 | Status | Status, car plugged in, power (estimate), connection (green/red) |
-| Control | `Charging: Stop / Start` = `Wallbox_Pause` ON/OFF (0 A profile, the session stays open; visible while `Wallbox_Charging==ON`), `Start session` (remote start, visible while `Wallbox_Status==Preparing`), hint texts in `SuspendedEVSE` ("Stopped - press Start to continue, or unplug the car to end the session") and `Finishing`, red warning while `Wallbox_StartBlocked==ON`, slider current limit 0-16 A step 1 (`releaseOnly`), quick buttons 6/10/16 A, Remove limit, Available/Unavailable |
+| Control | `Charging: Stop / Start` = `Wallbox_Pause` ON/OFF (0 A profile, the session stays open; visible while `Wallbox_Charging==ON`), hint texts in `SuspendedEVSE` ("Stopped - press Start to continue, or unplug the car to end the session") and `Finishing`, red warning while `Wallbox_StartBlocked==ON`, slider current limit 0-16 A step 1 (`releaseOnly`), quick buttons 6/10/16 A, Remove limit, Available/Unavailable |
 | Session | start, duration, end, ID tag, session number |
-| Service | last contact. No end-session (remote stop), unlock or reboot button (see charger behaviour) |
+| Service | last contact. No start-session (remote start), end-session (remote stop), unlock or reboot button (see charger behaviour) |
 
 ## Configuration files (`openhab-config-staging/`)
 

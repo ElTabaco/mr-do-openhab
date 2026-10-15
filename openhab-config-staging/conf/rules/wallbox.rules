@@ -63,8 +63,8 @@ then
 end
 
 // Start watchdog: with free charging the charger starts a session within a second of the plug-in.
-// If there is none after 60 s: send one remote start; if still none after 30 s more: show a warning
-// (the charger is then blocked until a reboot via its web UI).
+// If there is none after 60 s: show a warning (the charger is then blocked until a reboot via its web UI).
+// No remote start: in free charging mode 4 the charger rejects every RemoteStartTransaction (by design).
 rule "Wallbox start watchdog"
 when
     Item Wallbox_Status changed to Preparing
@@ -72,18 +72,10 @@ then
     wallboxStartTimer?.cancel
     wallboxStartTimer = createTimer(now.plusSeconds(60), [|
         if (Wallbox_Status.state.toString == "Preparing" && !(Wallbox_TransactionId.state instanceof DecimalType)) {
-            logWarn("wallbox", "No session 60 s after plug-in - sending remote start")
-            Wallbox_Charging.sendCommand(ON)
-            wallboxStartTimer = createTimer(now.plusSeconds(30), [|
-                if (Wallbox_Status.state.toString == "Preparing" && !(Wallbox_TransactionId.state instanceof DecimalType)) {
-                    logWarn("wallbox", "Charger did not start a session - reboot it via its web UI")
-                    Wallbox_StartBlocked.postUpdate(ON)
-                }
-                wallboxStartTimer = null
-            ])
-        } else {
-            wallboxStartTimer = null
+            logWarn("wallbox", "Charger did not start a session 60 s after plug-in - reboot it via its web UI")
+            Wallbox_StartBlocked.postUpdate(ON)
         }
+        wallboxStartTimer = null
     ])
 end
 
