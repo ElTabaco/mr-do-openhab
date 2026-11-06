@@ -1,6 +1,6 @@
 # openHAB First-Boot Checklist
 
-After NFS fix and pod startup, openHAB will boot as a **fresh install** (all previous data was on mr1 — deleted).
+After NFS fix and pod startup, openHAB will boot as a **fresh install** (all previous data was on a former node — deleted).
 
 ## Step 1: Fix NFS (on mr0)
 
